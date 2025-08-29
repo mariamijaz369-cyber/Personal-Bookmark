@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import bcrypt from "bcrypt";
 import User from "../models/user.model"; // your Mongoose User schema
 import { Session } from "../models/session.model";
@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 
 
 // Register new user
-export const register = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response,  next: NextFunction) => {
   try {
     const { name, email, password, dateOfBirth } = req.body;
 
@@ -48,10 +48,10 @@ export const register = async (req: Request, res: Response) => {
         dateOfBirth: newUser.dateOfBirth,
       },
     });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+  } catch(error) {
+    next(error)
   }
-};
+}
 // 4. Create Session on Login
 async function createSession(userId: string) {
     const token = crypto.randomBytes(32).toString("hex"); // secure token
@@ -73,7 +73,7 @@ async function expireSession(token: string) {
     const session = await Session.findOne({ token });
     if (!session) throw new Error("Session not found");
 
-    session.logoutTime = new Date();
+    session.logoutAt = new Date();
     await session.save();
     return "Session expired successfully";
 }
@@ -111,79 +111,24 @@ export async function loginUser(req: Request, res: Response): Promise<Response> 
     return res.status(500).json({ message: "Server error" });
   }
 }  
-
-
-// // =====================
-// // Fake Blacklist Store
-// // =====================
-// const blacklist: string[] = [];
-
-// // =====================
-// // Middleware: check token
-// // =====================
-// function authMiddleware(req: Request, res: Response, next: NextFunction) {
-//   const token = req.headers.authorization?.split(" ")[1]; // "Bearer token"
-//   if (!token) return res.status(401).json({ message: "❌ No token provided" });
-
-//   if (blacklist.includes(token)) {
-//     return res.status(401).json({ message: "❌ Token is blacklisted. Please login again." });
-//   }
-
-//   try {
-//     const isMatch = await bcrypt.compare(plainPassword, hashedPassword);
-//     (req as any).user = decoded; // attach user info
-//     next();
-//   } catch {
-//     return res.status(401).json({ message: "❌ Invalid token" });
-//   }
-// }
-
-// // =====================
-// // Logout Route
-// // =====================
-// app.post("/logout", (req: Request, res: Response) => {
-//   const token = req.headers.authorization?.split(" ")[1];
-//   if (token) {
-//     blacklist.push(token); // add token to blacklist
-//   }
-//   res.json({ message: "✅ Logged out successfully" });
-// });
- 
-const tokenBlacklist: string[] = [];
-
-// ========== Logout Function ==========
-function logoutUser(req: Request, res: Response) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1]; // Bearer <token>
-
-  if (!token) {
-    return res.status(400).json({ message: "❌ No token provided" });
-  }
-
-  // add token to blacklist
-  tokenBlacklist.push(token);
-
-  return res.json({ message: "✅ Logged out successfully" });
-}
-
-// ========== Middleware to Protect Routes ==========
-function authenticate(req: Request, res: Response, next: Function) {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "❌ No token, not authorized" });
-  }
-
-  if (tokenBlacklist.includes(token)) {
-    return res.status(401).json({ message: "❌ Token blacklisted (logged out)" });
-  }
-
+//logout
+ export async function logoutUser(req: Request, res: Response, next: NextFunction) {
   try {
-    // jwt.verify(token, process.env.JWT_SECRET || "supersecret");
-    const isMatch = await bcrypt.compare(plainPassword, hashedPassword);
-    next();
-  } catch (err) {
-    return res.status(401).json({ message: "❌ Invalid token" });
+    const  token = res.locals.token; // user must send token in body
+    console.log("token ",token )
+    // Find session in DB
+    const session = await Session.findOne({ token });
+
+    if (!session) {
+      return res.status(401).json({ message: "❌ Invalid token" });
+    }
+
+    session.set("logoutAt", new Date());
+    session.expiresAt = new Date();
+    await session.save();
+
+    return res.json({ message: "✅ Logged out successfully" });
+  } catch(err){
+    next(err)
   }
 }

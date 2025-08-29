@@ -5,7 +5,7 @@ export interface ISession {
     userId: string;
     token: string;
     loginTime: Date;
-    logoutTime?: Date;
+    logoutAt?: Date;
     expiresAt: Date;
 }
 
@@ -14,7 +14,7 @@ const SessionSchema = new Schema<ISession>({
     userId: { type: String, required: true },
     token: { type: String, required: true, unique: true },
     loginTime: { type: Date, default: Date.now },
-    logoutTime: { type: Date },
+    logoutAt: { type: Date, default : null },
     expiresAt: { type: Date, required: true }
 });
 

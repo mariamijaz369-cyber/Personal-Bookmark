@@ -68,17 +68,18 @@ import dotenv from "dotenv";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
 import routes from "./routes/route";
-
+import { authenticate } from "./middlewares/authentication.middleware";
+import { errorHandler } from "./middlewares/error_Handler.middleware";
 dotenv.config();
 
 const app: Application = express();
 
 // Middlewares
 app.use(express.json());
-
+app.use(authenticate)
 // Routes
 app.use("/", routes);
-
+app.use(errorHandler)
 // Swagger setup
 // const swaggerOptions = {
 //   definition: {
