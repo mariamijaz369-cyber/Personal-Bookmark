@@ -3,6 +3,7 @@ import mongoose, { Document, Schema } from "mongoose";
 
 // 1️⃣ Interface (TypeScript structure for a User)
 export interface IUser {
+  _id?:string;
   name: string;
   email: string;
   password: string;

@@ -1,27 +1,4 @@
-// import express from "express";
-// import { connectDB } from "./config/db.config";
-// import app from "./app";
-// const PORT = process.env.PORT || 8000;
 
-// app.use(express.json());
-
-// connectDB();
-
-// app.listen(PORT, () => {
-//   console.log(`🚀 Server running on port ${PORT}`);
-// });
-// import express from "express";
-// const app = express();
-// const PORT = 5500;
-
-// // Default route
-// app.get("/", (req, res) => {
-//   res.send("Hello! Your server is working 🚀");
-// });
-
-// app.listen(PORT, () => {
-//   console.log(Server running on http://127.0.0.1:${PORT});
-// });
 import express from "express";
 import { connectDB } from "./config/db.config";
 import app from "./app"

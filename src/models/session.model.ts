@@ -8,14 +8,13 @@ export interface ISession {
     logoutAt?: Date;
     expiresAt: Date;
 }
-
-// 2. Create Mongoose Schema
-const SessionSchema = new Schema<ISession>({
-    userId: { type: String, required: true },
-    token: { type: String, required: true, unique: true },
-    loginTime: { type: Date, default: Date.now },
-    logoutAt: { type: Date, default : null },
-    expiresAt: { type: Date, required: true }
+const sessionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+  token: { type: String, required: true, unique: true, index: true }, // ✅ add index
+  loginTime: Date,
+  logoutAt: Date,
+  expiresAt: Date,
 });
 
-export const Session = mongoose.model<ISession>("Session", SessionSchema);
+
+export const Session = mongoose.model<ISession>("Session", sessionSchema);

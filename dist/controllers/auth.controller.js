@@ -8,49 +8,66 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.register = void 0;
-const bcrypt_1 = __importDefault(require("bcrypt"));
-const user_model_1 = __importDefault(require("../models/user.model")); // your Mongoose User schema
-// Register new user
-const register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { name, email, password, dateOfBirth } = req.body;
-        // 1️⃣ Check if all fields are provided
-        if (!name || !email || !password || !dateOfBirth) {
-            return res.status(400).json({ message: "All fields are required" });
-        }
-        // 2️⃣ Check if email is already registered
-        const existingUser = yield user_model_1.default.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ message: "Email is already registered" });
-        }
-        // 3️⃣ Hash password (for security)
-        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-        // 4️⃣ Save user to MongoDB
-        const newUser = new user_model_1.default({
-            name,
-            email,
-            password: hashedPassword,
-            dateOfBirth,
-        });
-        yield newUser.save();
-        // 5️⃣ Send success response (never return raw password)
-        res.status(201).json({
-            message: "User registered successfully",
-            user: {
-                id: newUser._id,
-                name: newUser.name,
-                email: newUser.email,
-                dateOfBirth: newUser.dateOfBirth,
-            },
+exports.AuthController = void 0;
+const auth_service_1 = require("../service/auth.service");
+class AuthController {
+    constructor() {
+        this.authService = new auth_service_1.AuthService();
+    }
+    // ✨ Signup (Register)
+    signup(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { name, email, password, dateOfBirth } = req.body;
+                //  const { user, session } = await this.authService.registerUser(
+                const { newUser, session } = yield this.authService.registerUser(name, email, password, dateOfBirth);
+                // new (res "✅ Signup successful", session, user.name);
+                res.status(201).json({
+                    success: true,
+                    message: "✅ Signup successful",
+                    session,
+                    userName: newUser.name,
+                });
+            }
+            catch (err) {
+                next(err);
+            }
         });
     }
-    catch (error) {
-        res.status(500).json({ message: "Server error", error });
+    // ✨ Login
+    login(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { email, password } = req.body;
+                const { user, session } = yield this.authService.loginUser(email, password);
+                // new Login(res, "✅ Login successful", session, user.name);
+                res.status(200).json({
+                    success: true,
+                    message: "✅ Login successful",
+                    session,
+                    userName: user.name,
+                });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
     }
-});
-exports.register = register;
+    // ✨ Logout
+    logoutUser(req, res, next) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                if (!res.locals.token) {
+                    throw new Error("❌ Missing token");
+                }
+                const token = res.locals.token;
+                yield this.authService.logoutUser(token);
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+    }
+}
+exports.AuthController = AuthController;
