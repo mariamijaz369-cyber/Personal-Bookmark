@@ -16,5 +16,5 @@ router.post("/login", authController.login.bind(authController));
 //  * @route   POST /api/auth/logout
 //  * @desc    Logout user
 //  */
-router.post("/logout", authController.logout.bind(authController));
+router.post("/logout", authController.logoutUser.bind(authController));
 exports.default = router;

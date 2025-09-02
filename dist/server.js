@@ -1,8 +1,4 @@
 "use strict";
-// import express from "express";
-// import { connectDB } from "./config/db.config";
-// import app from "./app";
-// const PORT = process.env.PORT || 8000;
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };

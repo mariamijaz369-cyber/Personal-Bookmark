@@ -1,9 +1,15 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
 import { findUserByEmail, createUser } from "../repositiories/user.reposoitory";
-import { Session } from "../models/session.model";
+import { ISession, Session } from "../models/session.model";
+import { IUser } from "../models/user.model";
+import { SessionRepository } from "../repositiories/session.repositiory";
 export class AuthService {
-
+    sessionRepo: SessionRepository;
+    sessions: any;
+constructor(){ 
+    this.sessionRepo=new SessionRepository()
+}
   // 🟢 Register a new user
   public async registerUser(
     name: string,
@@ -33,6 +39,10 @@ export class AuthService {
 
     return { newUser, session };
   }
+    createSession(arg0: string) {
+        throw new Error("Method not implemented.");
+    }
+//login
  public async loginUser(email: string, password: string) {
     // 1️⃣ Check inputs
     if (!email || !password) {
@@ -56,37 +66,21 @@ export class AuthService {
 
     return { user, session };
   } 
-   public async logoutUser(token: string) {
-    // 1️⃣ Find session by token
-    const session = await Session.findOne({ token });
+    public async logoutUser(token: string) {
+    if (!token) {
+      throw new Error("❌ Token is required");
+    }
+
+    // Find session in memory
+    // const session = this.sessions.find((s: { token: string; }) => s.token === token);
+ const session =await this.sessionRepo.findByToken(token);
 
     if (!session) {
       throw new Error("❌ Invalid token");
     }
+    // return session; // no DB, just return updated object
+    await this.sessionRepo.logout(token);
 
-    // 2️⃣ Mark session as logged out
-    // session.set("logoutAt", new Date());
-    session.logoutAt=new Date();
-    session.expiresAt = new Date(); 
-    await session.save();
-return
-    // return { message: "✅ Logged out successfully" };
-  }
-
-  // 🟢 Create a new session
-  private async createSession(userId: string) {
-    const token = crypto.randomBytes(32).toString("hex"); // secure token
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
-
-    const session = new Session({
-      userId,
-      token,
-      loginTime: new Date(),
-      expiresAt,
-      logoutAt:null
-    });
-
-    await session.save();
-    return { token, expiresAt };
   }
 }
+

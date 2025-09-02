@@ -25,7 +25,7 @@ export class SessionRepository {
   async logout(token: string): Promise<ISession | null> {
     return Session.findOneAndUpdate(
       { token },
-      { $set: { logoutAt: new Date() } },
+      { $set: { logoutAt: new Date(),expiresAt : new Date()} },
       { new: true }
     );
   }
@@ -51,6 +51,8 @@ export class SessionRepository {
 
 // Export a singleton instance
 export const sessionRepository = new SessionRepository();
+
+
  export const createSession = async (userId: string) => {
   const session = new Session({
     userId,
@@ -60,3 +62,4 @@ export const sessionRepository = new SessionRepository();
 
   return await session.save();
 };
+

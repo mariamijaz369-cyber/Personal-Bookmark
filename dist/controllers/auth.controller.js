@@ -63,6 +63,10 @@ class AuthController {
                 }
                 const token = res.locals.token;
                 yield this.authService.logoutUser(token);
+                res.status(200).json({
+                    success: true,
+                    message: "✅ Logout successful",
+                });
             }
             catch (err) {
                 next(err);
