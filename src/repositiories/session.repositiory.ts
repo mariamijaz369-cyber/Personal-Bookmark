@@ -1,16 +1,12 @@
 // src/repositories/session.repository.ts
-
-import { Session, ISession } from "../models/session.model";
+import { Session, ISession } from "../models/session.model"
 import { Types } from "mongoose";
 
 export class SessionRepository {
-  /**
-   * Create a new session
-   */
-  async createSession(userId: Types.ObjectId, token: string, expiresAt: Date): Promise<ISession> {
-    const session = await Session.create({ userId, token, expiresAt });
-    return session.toObject();
-  }
+async create(sessionData: { userId: string; token: string; createdAt: Date; expiresAt: Date; }): Promise<ISession> {
+  const session = await Session.create(sessionData);
+  return session.toObject();
+}
 
   /**
    * Find a session by token
@@ -40,9 +36,9 @@ export class SessionRepository {
     return result.deletedCount || 0;
   }
 
-  /**
-   * Delete all sessions for a user (useful on password change)
-   */
+//   /**
+//    * Delete all sessions for a user (useful on password change)
+//    */
   async deleteAllByUser(userId: Types.ObjectId): Promise<number> {
     const result = await Session.deleteMany({ userId });
     return result.deletedCount || 0;

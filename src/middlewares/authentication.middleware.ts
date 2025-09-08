@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { Session } from "../models/session.model"; // your session schema
-// import { UnauthorizedError } from "../error/custom_error.error"; // custom error (optional)
+
 
 export async function authenticate(req: Request, res: Response, next: NextFunction) {
    try{
@@ -41,4 +41,3 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     next(err)
   }
 }
-

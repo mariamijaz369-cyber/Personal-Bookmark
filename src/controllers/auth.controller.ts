@@ -5,8 +5,6 @@ import { Session } from "../models/session.model";
 import crypto from "crypto";
 import dotenv from "dotenv";
 import { AuthService } from "../service/auth.service";
-
-
 export class AuthController {
   private authService = new AuthService();
   logout: any;
@@ -23,7 +21,7 @@ export class AuthController {
         password,
         dateOfBirth
       );
-
+    console.log(session)
       // new (res "✅ Signup successful", session, user.name);
       res.status(201).json({
       success: true,

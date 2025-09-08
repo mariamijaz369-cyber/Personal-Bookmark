@@ -1,4 +1,12 @@
-dist
-node_modules
+# compiled files
+dist/
+
+# dependencies
+node_modules/
+
+# environment variables
 .env
+
+# ignore all .js files
 *.js
+

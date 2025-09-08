@@ -1,6 +1,5 @@
 // src/models/bookmark.model.ts
-
-import { Schema, model, Types } from "mongoose";
+ import { Schema, model, Types } from "mongoose";
 
 export interface IBookmark {
   _id?: Types.ObjectId;
@@ -25,8 +24,6 @@ const bookmarkSchema = new Schema<IBookmark>(
   },
   { timestamps: true }
 );
-
 // Indexes for faster searching by title, notes, or tags
 bookmarkSchema.index({ title: "text", notes: "text", tags: "text" });
-
-export const Bookmark = model<IBookmark>("Bookmark", bookmarkSchema);
+ export const Bookmark = model<IBookmark>("Bookmark", bookmarkSchema);

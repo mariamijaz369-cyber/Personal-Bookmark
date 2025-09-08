@@ -5,6 +5,9 @@ import { ISession, Session } from "../models/session.model";
 import { IUser } from "../models/user.model";
 import { SessionRepository } from "../repositiories/session.repositiory";
 export class AuthService {
+  logoutUser(token: any) {
+    throw new Error("Method not implemented.");
+  }
     sessionRepo: SessionRepository;
     sessions: any;
 constructor(){ 
@@ -34,53 +37,51 @@ constructor(){
       dateOfBirth,
     });
 
-    // 4️⃣ Create session
-    const session = await this.createSession(newUser._id.toString());
+   // 4️⃣ Create session
+  const session = await this.createSession(newUser._id.toString());
 
     return { newUser, session };
   }
-    createSession(arg0: string) {
-        throw new Error("Method not implemented.");
-    }
-//login
- public async loginUser(email: string, password: string) {
-    // 1️⃣ Check inputs
-    if (!email || !password) {
-      throw new Error("❌ Email and password are required");
-    }
+public async createSession(userId: string): Promise<ISession> {
+  const token = crypto.randomBytes(32).toString("hex");
 
-    // 2️⃣ Find user by email
-    const user = await findUserByEmail(email);
-    if (!user) {
-      throw new Error("❌ Invalid email or password");
-    }
+  const sessionData = {
+    userId,
+    token,
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour expiry
+    logoutAt:null
+  };
 
-    // 3️⃣ Compare password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new Error("❌ Invalid email or password");
-    }
-
-    // 4️⃣ Create session
-    const session = await this.createSession(user._id.toString());
-
-    return { user, session };
-  } 
-    public async logoutUser(token: string) {
-    if (!token) {
-      throw new Error("❌ Token is required");
-    }
-
-    // Find session in memory
-    // const session = this.sessions.find((s: { token: string; }) => s.token === token);
- const session =await this.sessionRepo.findByToken(token);
-
-    if (!session) {
-      throw new Error("❌ Invalid token");
-    }
-    // return session; // no DB, just return updated object
-    await this.sessionRepo.logout(token);
-
-  }
+  // ✅ repo.create now returns ISession, not void
+//   const session = this.sessionRepo.create(sessionData);
+//   return session;
+// }
+const session = await this.sessionRepo.create(sessionData);
+return session;
 }
+//login
+public async loginUser(email: string, password: string) {
+  // 1️⃣ Validate input
+  if (!email || !password) {
+    throw new Error("❌ Email and password are required");
+  }
 
+  // 2️⃣ Find user
+  const user = await findUserByEmail(email);
+  if (!user) {
+    throw new Error("❌ Invalid email or password");
+  }
+
+  // 3️⃣ Check password
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw new Error("❌ Invalid email or password");
+  }
+
+  // 4️⃣ ✅ Create new session (don’t search by token here)
+  const session = await this.createSession(user._id.toString());
+
+  return { user, session };
+}
+}

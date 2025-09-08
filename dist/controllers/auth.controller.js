@@ -22,6 +22,7 @@ class AuthController {
                 const { name, email, password, dateOfBirth } = req.body;
                 //  const { user, session } = await this.authService.registerUser(
                 const { newUser, session } = yield this.authService.registerUser(name, email, password, dateOfBirth);
+                console.log(session);
                 // new (res "✅ Signup successful", session, user.name);
                 res.status(201).json({
                     success: true,

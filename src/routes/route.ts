@@ -1,16 +1,7 @@
-// import authroutes from "./auth.routes"
-// import { Router } from "express";
-// const router = Router();
-// export default routes;
 
+import { BookmarkController } from "../controllers/bookmark.controller";
+import { Bookmark } from "../models/bookmark.model";
 import authroutes from "./auth.routes";
-const routes = [authroutes];
+import bookmarkroutes from "./bookmark.routes"
+const routes = [authroutes,bookmarkroutes];
 export default routes;
-
-// import authroutes from "./auth.routes";  // ✅ default export from auth.routes
-// import { Router } from "express";
-
-// const router = Router();
-// router.use("/auth", authroutes);  // ✅ use the auth routes under /auth
-
-// export default router;

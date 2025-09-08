@@ -1,7 +1,9 @@
 // src/repositories/user.repository.ts
 import User, {IUser } from "../models/user.model";
 import { Types } from "mongoose";
-
+export async function findUserById(userId: Types.ObjectId): Promise<IUser | null> {
+  return User.findById(userId);
+}
 export class UserRepository {
   /**
    * Create a new user
@@ -10,7 +12,6 @@ export class UserRepository {
     const user = await User.create({ name, email, password });
     return user.toObject();
   }
-
   /**
    * Find a user by ID
    */
@@ -61,15 +62,9 @@ export class UserRepository {
 
 // Export singleton instance
 export const userRepository = new UserRepository();
-// export const findUserByEmail = async (email: string) => {
-//   return await User.findOne({ email });
-// };
- 
 
-// export const createUser = async (userData: Partial<IUser>) => {
-//   const newUser = new User(userData);
-// //   return await newUser.save();
-// };
+
+
 
 export const findUserByEmail = async (email: string) => {
   return await User.findOne({ email });
