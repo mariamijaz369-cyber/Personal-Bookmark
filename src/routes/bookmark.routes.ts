@@ -1,8 +1,9 @@
 import { Router } from "express";
+import { authMiddleware } from "../middlewares/auth.middleware";
 import { isAuthenticated } from "../middlewares/auth.middleware";
 import { BookmarkController } from "../controllers/bookmark.controller";
-import { deleteBookmark } from "../controllers/bookmark.controller";
 import express from "express";
+import { deleteBookmark } from "../repositiories/bookmark.repository";
  const router = Router();
 // ✅ create an object
 const bookmarkController = new BookmarkController();
@@ -18,5 +19,7 @@ router.put(
 // delete
 router.delete(
   "/deletebookmark/:id",
-   router.delete("/deletebookmark/:id", deleteBookmark)
+   router.delete("/deletebookmark/:id",bookmarkController.deleteBookmark)
 );
+// get api
+router.get("/getbookmarks",bookmarkController.getActiveBookmarks.bind(bookmarkController));

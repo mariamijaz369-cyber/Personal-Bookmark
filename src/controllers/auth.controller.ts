@@ -54,7 +54,7 @@ export class AuthController {
     }
   }
 
-  // ✨ Logout
+  //  Logout
   public async logoutUser(req: Request, res: Response, next: NextFunction) {
     try {
       if (!res.locals.token) {

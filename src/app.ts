@@ -7,6 +7,7 @@ import swaggerJsDoc from "swagger-jsdoc";
 // import Bookmarkrouter from "./routes/bookmark.routes";
 import { authenticate } from "./middlewares/authentication.middleware";
 import { errorHandler } from "./middlewares/error_Handler.middleware";
+import bookmarkRoutes from "./routes/bookmark.routes";
 dotenv.config();
 
 const app: Application = express();
@@ -43,5 +44,5 @@ app.use(errorHandler)
 app.get("/", (req: Request, res: Response) => {
   res.send("✅ API is running...");
 });
-
+app.use("/api", bookmarkRoutes);
 export default app;
