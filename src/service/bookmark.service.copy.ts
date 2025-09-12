@@ -32,13 +32,15 @@ export class BookmarkService {
     // ✅ 3. Call repository function
     return await this.bookmarkRepository.createBookmark(userId, url, title, tags, notes);
   }
+//getActiveBookmarks
   async  getActiveBookmarks(
   userId: string,
+  
   params:GetActiveBookmarks
 ) {
   if (!userId) {
     throw new Error("user not found")}
-  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery)
+  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery,params.tags)
    
 
   // Map to DTO (business transformation)
@@ -55,6 +57,7 @@ export class BookmarkService {
 
   return formatted
 }
+// updatebookmark
 async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>) {
     // ✅ 1. Validate Bookmark ID
     if (!bookmarkId || typeof bookmarkId !== "string") {

@@ -113,19 +113,26 @@ export class BookmarkRepository {
     });
   }
   // getactivebookmark
-async GetActiveBookmark(userId: string, searchQuery: string = "") {
-  // Build base filter
-  const filter: FilterQuery<typeof Bookmark> = {
-    userId,
-    $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
-  };
+   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="") {
+    // Base filter
+    const filter: FilterQuery<typeof Bookmark> = {
+      userId,
+      $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
+    };
 
-  // Apply search query if exists
-  if (searchQuery.trim().length > 0) {
-    const words = searchQuery.trim().split(/\s+/).map(this.escapeRegex);
-    const pattern = words.join("|");
-    filter.title = { $regex: pattern, $options: "i" };
-  }
+    // 🔎 Apply search query if exists
+    if (searchQuery.trim().length > 0) {
+      const words = searchQuery.trim().split(/\s+/).map(this.escapeRegex);
+      const pattern = words.join("|");
+      filter.title = { $regex: pattern, $options: "i" };
+    }
+
+    // 🏷️ Apply tags filter if tags exist
+    if (tags) {
+      filter.tags = { $all: tags }; 
+      // $all → ensures that all given tags must be present in the bookmark
+    }
+
 
   // Query MongoDB
   const bookmarks = await Bookmark.find(

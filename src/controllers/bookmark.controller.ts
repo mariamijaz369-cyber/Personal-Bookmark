@@ -6,8 +6,6 @@ import { ParsedQs } from "qs";
 import { GetActiveBookmarksSchema } from "../dto/bookmark.request.dto";
 import { Error } from "mongoose";
 import {BookmarkResponse, GetActiveBookmarksResponse} from "../dto/bookmark.response.dto"
-// import { GetActiveBookmark } from "../repositiories/bookmark.repository";
-// import { getActiveBookmarks } from "../repositiories/bookmark.repository";
 export class BookmarkController {
   bind(bind: any): import("express-serve-static-core").RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>> {
     throw new Error("Method not implemented.");
@@ -156,6 +154,7 @@ export class BookmarkController {
       });
     }
   }
+  // deletebookmarks
   public async deleteBookmark(req: Request, res: Response) {
     try {
       const userId = res.locals.user; // user comes from middleware
