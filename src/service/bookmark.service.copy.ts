@@ -3,7 +3,7 @@ import { IBookmark } from "../models/bookmark.model";
 import { findUserById } from "../repositiories/user.reposoitory";
 import {  BookmarkRepository, } from "../repositiories/bookmark.repository"; // ✅ import the instance
 import { BookmarkResponse, GetActiveBookmarksResponse } from "../dto/bookmark.response.dto";
-import { GetActiveBookmarks, GetActiveBookmarksSchema } from "../dto/bookmark.request.dto";
+import { GetActiveBookmarksRequest, GetActiveBookmarksSchema } from "../dto/bookmark.request.dto";
 export class BookmarkService {
   private bookmarkRepository=new BookmarkRepository()
   /**
@@ -35,12 +35,11 @@ export class BookmarkService {
 //getActiveBookmarks
   async  getActiveBookmarks(
   userId: string,
-  
-  params:GetActiveBookmarks
+  params:GetActiveBookmarksRequest
 ) {
   if (!userId) {
     throw new Error("user not found")}
-  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery,params.tags)
+  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery,params.tags, params.page,params.limit)
    
 
   // Map to DTO (business transformation)

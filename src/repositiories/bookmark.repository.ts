@@ -113,7 +113,7 @@ export class BookmarkRepository {
     });
   }
   // getactivebookmark
-   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="") {
+   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="", page = 1, limit = 10) {
     // Base filter
     const filter: FilterQuery<typeof Bookmark> = {
       userId,
@@ -132,8 +132,14 @@ export class BookmarkRepository {
       filter.tags = { $all: tags }; 
       // $all → ensures that all given tags must be present in the bookmark
     }
+    // Pagination
+   const skip = (page - 1) * limit;
 
-
+// Fetch Bookmarks
+const bookmark = await Bookmark.find(filter, { title: 1, url: 1, tags: 1, notes: 1, createdAt: 1 })
+  .sort({ createdAt: -1 })
+  .skip(skip)
+  .limit(limit);
   // Query MongoDB
   const bookmarks = await Bookmark.find(
     filter,
