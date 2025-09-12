@@ -1,6 +1,5 @@
 import { Bookmark, IBookmark } from "../models/bookmark.model";
-import { Types } from "mongoose";
-
+import { FilterQuery, Types } from "mongoose"
 /**
  * Find bookmark by user and URL
  */
@@ -15,6 +14,7 @@ export async function findBookmarkByUserAndUrl(
  * Bookmark Repository (single definition)
  */
 export class BookmarkRepository {
+ 
   /**
    * Create a new bookmark
    */
@@ -112,50 +112,31 @@ export class BookmarkRepository {
       deletedAt: null,
     });
   }
-}
+  // getactivebookmark
+async GetActiveBookmark(userId: string, searchQuery: string = "") {
+  // Build base filter
+  const filter: FilterQuery<typeof Bookmark> = {
+    userId,
+    $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
+  };
 
-// ✅ Export singleton instance
-export const bookmarkRepository = new BookmarkRepository();
-
-/**
- * Example in-memory update function (fake DB)
- */
-let bookmarks = [
-  { id: "1", url: "https://google.com", title: "Google", notes: "Search engine", tags: ["search"] },
-  { id: "2", url: "https://youtube.com", title: "YouTube", notes: "Videos", tags: ["videos"] }
-];
-
-// ✅ Update a bookmark in memory
-export async function updateBookmark(
-  bookmarkId: string,
-  updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>
-) {
-  const index = bookmarks.findIndex(b => b.id === bookmarkId);
-  if (index === -1) throw new Error("Bookmark not found");
-
-  bookmarks[index] = { ...bookmarks[index], ...updateData };
-  return bookmarks[index];
-}
-
-
-// delete
-export async function deleteBookmark(
-  bookmarkId: string,
-  isSoftDelete: boolean = true
-): Promise<IBookmark | null> {
-  let deletedBookmark: IBookmark | null;
-
-  if (isSoftDelete) {
-    // ✅ Soft delete → mark as deleted instead of removing
-    deletedBookmark = await Bookmark.findByIdAndUpdate(
-      bookmarkId,
-      { $set: { isDeleted: true } },
-      { new: true }
-    );
-  } else {
-    // ✅ Hard delete → remove completely
-    deletedBookmark = await Bookmark.findByIdAndDelete(bookmarkId);
+  // Apply search query if exists
+  if (searchQuery.trim().length > 0) {
+    const words = searchQuery.trim().split(/\s+/).map(this.escapeRegex);
+    const pattern = words.join("|");
+    filter.title = { $regex: pattern, $options: "i" };
   }
 
-  return deletedBookmark;
+  // Query MongoDB
+  const bookmarks = await Bookmark.find(
+    filter,
+    { title: 1, url: 1, tags: 1, notes: 1, createdAt: 1 }
+  ).sort({ createdAt: -1 });
+
+  return bookmarks;
+}
+// Helper to escape regex special chars
+private escapeRegex(w: string): string {
+  return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 }

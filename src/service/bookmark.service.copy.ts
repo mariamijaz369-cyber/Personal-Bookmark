@@ -1,10 +1,11 @@
-
-import { Types } from "mongoose";
+import { Document, Types } from "mongoose";
 import { IBookmark } from "../models/bookmark.model";
 import { findUserById } from "../repositiories/user.reposoitory";
-import { bookmarkRepository } from "../repositiories/bookmark.repository"; // ✅ import the instance
-
+import {  BookmarkRepository, } from "../repositiories/bookmark.repository"; // ✅ import the instance
+import { BookmarkResponse, GetActiveBookmarksResponse } from "../dto/bookmark.response.dto";
+import { GetActiveBookmarks, GetActiveBookmarksSchema } from "../dto/bookmark.request.dto";
 export class BookmarkService {
+  private bookmarkRepository=new BookmarkRepository()
   /**
    * Business function: Create a new bookmark
    */
@@ -29,13 +30,32 @@ export class BookmarkService {
     }
 
     // ✅ 3. Call repository function
-    return await bookmarkRepository.createBookmark(userId, url, title, tags, notes);
+    return await this.bookmarkRepository.createBookmark(userId, url, title, tags, notes);
   }
-}
+  async  getActiveBookmarks(
+  userId: string,
+  params:GetActiveBookmarks
+) {
+  if (!userId) {
+    throw new Error("user not found")}
+  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery)
+   
 
-//  updateBookmark
- export class BookmarkBusinessService {
-  async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>) {
+  // Map to DTO (business transformation)
+  const formatted: BookmarkResponse[] = data
+    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+    .map((b) => ({
+      id: b._id?.toString() ?? "",
+      url: b.url,
+      title: b.title,
+      notes: b.notes,
+      tags: b.tags,
+      createdAt: b.createdAt,
+    }));
+
+  return formatted
+}
+async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>) {
     // ✅ 1. Validate Bookmark ID
     if (!bookmarkId || typeof bookmarkId !== "string") {
       throw new Error("Invalid Bookmark ID");
@@ -74,11 +94,7 @@ export class BookmarkService {
     // ✅ 6. Return updated bookmark (DB save happens elsewhere)
     return updatedBookmark;
   }
-}
-
-// delete
-
-export function deleteBookmarkBusinessLogic(
+  async deleteBookmarkBusinessLogic(
   bookmark: { isDeleted?: boolean; [key: string]: any } | null,
   isSoftDelete: boolean = true
 ) {
@@ -104,4 +120,4 @@ export function deleteBookmarkBusinessLogic(
     };
   }
 }
-
+}

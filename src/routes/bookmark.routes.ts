@@ -3,7 +3,7 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 import { isAuthenticated } from "../middlewares/auth.middleware";
 import { BookmarkController } from "../controllers/bookmark.controller";
 import express from "express";
-import { deleteBookmark } from "../repositiories/bookmark.repository";
+
  const router = Router();
 // ✅ create an object
 const bookmarkController = new BookmarkController();
