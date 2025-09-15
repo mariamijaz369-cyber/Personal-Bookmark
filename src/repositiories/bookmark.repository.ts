@@ -113,7 +113,7 @@ export class BookmarkRepository {
     });
   }
   // getactivebookmark
-   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="", page = 1, limit = 10) {
+   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="",cursor?: string, limit = 10) {
     // Base filter
     const filter: FilterQuery<typeof Bookmark> = {
       userId,
@@ -132,22 +132,40 @@ export class BookmarkRepository {
       filter.tags = { $all: tags }; 
       // $all → ensures that all given tags must be present in the bookmark
     }
-    // Pagination
-   const skip = (page - 1) * limit;
+    
+  // ⏩ Apply cursor (pagination)
+  if (cursor) {
+    filter.createdAt = { $lt: new Date(cursor) }; 
+    // $lt = get bookmarks older than the cursor date
+  }
 
-// Fetch Bookmarks
-const bookmark = await Bookmark.find(filter, { title: 1, url: 1, tags: 1, notes: 1, createdAt: 1 })
-  .sort({ createdAt: -1 })
-  .skip(skip)
-  .limit(limit);
-  // Query MongoDB
+  // Fetch Bookmarks
   const bookmarks = await Bookmark.find(
     filter,
     { title: 1, url: 1, tags: 1, notes: 1, createdAt: 1 }
-  ).sort({ createdAt: -1 });
+  )
+    .sort({ _id: -1 }) // 👉 use _id for consistent ordering
+    .limit(limit + 1); // fetch 1 extra to check if more exist
+// 🔑 Check if there's a next page
+  const hasNextPage = bookmarks.length > limit;
 
-  return bookmarks;
+  // remove the extra record if exists
+  if (hasNextPage) {
+    bookmarks.pop();
+  }
+
+  // 📌 Next cursor = createdAt of last item
+  const nextCursor = bookmarks.length > 0
+    ? bookmarks[bookmarks.length - 1].createdAt.toISOString()
+    : null;
+
+  return {
+    bookmarks,
+    nextCursor,
+    hasNextPage,
+  };
 }
+
 // Helper to escape regex special chars
 private escapeRegex(w: string): string {
   return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

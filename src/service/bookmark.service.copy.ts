@@ -33,29 +33,44 @@ export class BookmarkService {
     return await this.bookmarkRepository.createBookmark(userId, url, title, tags, notes);
   }
 //getActiveBookmarks
-  async  getActiveBookmarks(
+  async getActiveBookmarks(
   userId: string,
-  params:GetActiveBookmarksRequest
-) {
+  params: GetActiveBookmarksRequest // contains { searchQuery?, tags?, cursor?, limit? }
+): Promise<{
+  bookmarks: BookmarkResponse[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}> {
   if (!userId) {
-    throw new Error("user not found")}
-  const data = await this.bookmarkRepository.GetActiveBookmark(userId,params.searchQuery,params.tags, params.page,params.limit)
-   
+    throw new Error("User not found");
+  }
+
+  // call repo function (cursor version, not offset)
+  const data = await this.bookmarkRepository.GetActiveBookmark(
+    userId,
+    params.searchQuery ?? "",
+    params.tags ?? "",
+    params.cursor,  // last createdAt or _id from previous page
+    params.limit ?? 10
+  );
 
   // Map to DTO (business transformation)
-  const formatted: BookmarkResponse[] = data
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    .map((b) => ({
-      id: b._id?.toString() ?? "",
-      url: b.url,
-      title: b.title,
-      notes: b.notes,
-      tags: b.tags,
-      createdAt: b.createdAt,
-    }));
+  const formatted: BookmarkResponse[] = data.bookmarks.map((b) => ({
+    id: b._id?.toString() ?? "",
+    url: b.url,
+    title: b.title,
+    notes: b.notes,
+    tags: b.tags,
+    createdAt: b.createdAt,
+  }));
 
-  return formatted
+  return {
+    bookmarks: formatted,
+    nextCursor: data.nextCursor,
+    hasNextPage: data.hasNextPage,
+  };
 }
+
 // updatebookmark
 async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>) {
     // ✅ 1. Validate Bookmark ID

@@ -196,7 +196,8 @@ public async getActiveBookmarks(req: Request, res: Response, next: NextFunction)
         code: 200,
         success: true,
         message: "Bookmarks retrieved successfully",
-        bookmarks:bookmarks
+        //  bookmarks:bookmarks
+         bookmarks: bookmarks.bookmarks, 
         // data: formatted, 
       };
 
