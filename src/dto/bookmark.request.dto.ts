@@ -6,6 +6,7 @@ export interface GetActiveBookmarksRequest {
   tags?: string;         // comma-separated tags if multiple
   cursor?: string;       // last bookmark ID (for cursor pagination)
   limit?: number;        // how many to fetch (default = 10)
+  sort?: string;         // e.g., "createdAt:desc" or "title:asc"
 }
 
 // 🔹 Response DTO (what API sends back)
@@ -16,6 +17,7 @@ export interface BookmarkResponse {
   notes?: string;
   tags: string[];
   createdAt: Date;
+  sort?: string;     
 }
 
 export interface GetActiveBookmarksResponse {
@@ -30,7 +32,12 @@ export interface GetActiveBookmarksResponse {
 // 🔹 Joi validation schema for request
 export const GetActiveBookmarksSchema = Joi.object({
   searchQuery: Joi.string().optional().allow(""),
-  tags: Joi.string().optional().allow(""), 
+  tags: Joi.string().optional().allow(""),
   cursor: Joi.string().optional().allow(""),
   limit: Joi.number().integer().min(1).max(100).default(10),
+
+  // ✅ Sorting: "field:direction"
+  sort: Joi.string()
+  .valid("createdAt:asc", "createdAt:desc")
+  .default("createdAt:desc"),
 });

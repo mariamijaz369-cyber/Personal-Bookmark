@@ -1,32 +1,5 @@
-// Shape of a single bookmark in the response
-// export interface BookmarkResponse {
-//   id: string;
-//   url: string;
-//   title: string;
-//   notes?: string;
-//   tags?: string[];
-//   createdAt: Date;
-// }
 
-import { IBookmark } from "../models/bookmark.model";
-
-// // Shape of the whole response
-// export interface GetActiveBookmarksResponse {
-//   code: number;              // e.g. 200
-//   success: boolean;          // true / false
-//   message: string;           // "bookmark retrieved successfully"
-//   data: [
-//    {
-//       id: string;
-//   url: string;
-//   title: string;
-//   notes?: string;
-//   tags?: string[];
-//   createdAt: Date;
-// }
-// ]
-// }
-// Single bookmark shape
+// Single bookmark response DTO
 export interface BookmarkResponse {
   id: string;
   url: string;
@@ -36,10 +9,21 @@ export interface BookmarkResponse {
   createdAt: Date;
 }
 
-// Full API response shape
+// Request DTO for getting active bookmarks (query params)
+export interface GetActiveBookmarksRequest {
+  searchQuery?: string;
+  tags?: string;
+  cursor?: string;     // for pagination
+  limit?: number;      // number of items per page
+  sort?: string;       // e.g., "createdAt:desc"
+}
+
+// Response DTO for active bookmarks API
 export interface GetActiveBookmarksResponse {
-  code: number;       // e.g. 200
-  success: boolean;   // true / false
-  message: string;    // "bookmark retrieved successfully"
-  bookmarks :BookmarkResponse []
+  code: number,
+  success: boolean,
+  message: string,
+  bookmarks: BookmarkResponse[];  // array of bookmarks
+  nextCursor: string | null;      // cursor for next page
+  hasNextPage: boolean;           // is there more data?
 }

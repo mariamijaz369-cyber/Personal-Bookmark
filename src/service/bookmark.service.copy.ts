@@ -1,10 +1,11 @@
 import { Document, Types } from "mongoose";
-import { IBookmark } from "../models/bookmark.model";
+import { Bookmark, IBookmark } from "../models/bookmark.model";
 import { findUserById } from "../repositiories/user.reposoitory";
 import {  BookmarkRepository, } from "../repositiories/bookmark.repository"; // ✅ import the instance
 import { BookmarkResponse, GetActiveBookmarksResponse } from "../dto/bookmark.response.dto";
 import { GetActiveBookmarksRequest, GetActiveBookmarksSchema } from "../dto/bookmark.request.dto";
 export class BookmarkService {
+
   private bookmarkRepository=new BookmarkRepository()
   /**
    * Business function: Create a new bookmark
@@ -33,44 +34,42 @@ export class BookmarkService {
     return await this.bookmarkRepository.createBookmark(userId, url, title, tags, notes);
   }
 //getActiveBookmarks
-  async getActiveBookmarks(
-  userId: string,
-  params: GetActiveBookmarksRequest // contains { searchQuery?, tags?, cursor?, limit? }
-): Promise<{
-  bookmarks: BookmarkResponse[];
-  nextCursor: string | null;
-  hasNextPage: boolean;
-}> {
-  if (!userId) {
-    throw new Error("User not found");
-  }
+  async getActiveBookmark(
+    userId: string,
+    params: GetActiveBookmarksRequest // { searchQuery?, tags?, cursor?, limit?, sort? }
+  ): Promise<{
+    bookmarks: BookmarkResponse[];
+    nextCursor: string | null;
+    hasNextPage: boolean;
+  }> {
+    if (!userId) throw new Error("User not found");
 
-  // call repo function (cursor version, not offset)
-  const data = await this.bookmarkRepository.GetActiveBookmark(
-    userId,
-    params.searchQuery ?? "",
-    params.tags ?? "",
-    params.cursor,  // last createdAt or _id from previous page
-    params.limit ?? 10
-  );
+    // Call repository function
+    const data = await this.bookmarkRepository.GetActiveBookmark(
+      userId,
+      params.searchQuery ?? "",
+      params.tags ?? "",
+      params.cursor,
+      params.limit ?? 10,
+      params.sort ?? "createdAt:desc" // default sort
+    );
+  // Assume `data.bookmarks` comes from your repository
+const formatted: BookmarkResponse[] = data.bookmarks.map((b) => ({
+  id: b._id?.toString() ?? "",
+  url: b.url,
+  title: b.title,
+  notes: b.notes,
+  tags: b.tags,
+  createdAt: b.createdAt,
+}));
 
-  // Map to DTO (business transformation)
-  const formatted: BookmarkResponse[] = data.bookmarks.map((b) => ({
-    id: b._id?.toString() ?? "",
-    url: b.url,
-    title: b.title,
-    notes: b.notes,
-    tags: b.tags,
-    createdAt: b.createdAt,
-  }));
-
-  return {
-    bookmarks: formatted,
-    nextCursor: data.nextCursor,
-    hasNextPage: data.hasNextPage,
-  };
-}
-
+// Now assign the formatted array
+return {
+  bookmarks: formatted, // ✅ this is BookmarkResponse[]
+  nextCursor: data.nextCursor,
+  hasNextPage: data.hasNextPage,
+};
+ }
 // updatebookmark
 async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; title: string; notes: string; tags: string[] }>) {
     // ✅ 1. Validate Bookmark ID
@@ -94,7 +93,7 @@ async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; titl
     if (updateData.title !== undefined && updateData.title.trim() === "") {
       throw new Error("Title cannot be empty");
     }
-
+  
     // ✅ 4. Apply default values
     const finalNotes = updateData.notes && updateData.notes.trim() !== "" ? updateData.notes : bookmark.notes;
     const finalTags = updateData.tags && updateData.tags.length > 0 ? updateData.tags : bookmark.tags;
@@ -138,3 +137,7 @@ async updateBookmark(bookmarkId: string, updateData: Partial<{ url: string; titl
   }
 }
 }
+function updateBookmark(bookmarkId: any, string: any, updateData: any, arg3: any) {
+  throw new Error("Function not implemented.");
+}
+

@@ -190,15 +190,15 @@ public async getActiveBookmarks(req: Request, res: Response, next: NextFunction)
       const { error, value } = GetActiveBookmarksSchema.validate(req.query);
       if (error) return res.status(400).json({ success: false, message: error.message });
 
-     const bookmarks =await this.bookmarkService.getActiveBookmarks(userId,value)
+     const bookmarks =await this.bookmarkService.getActiveBookmark(userId,value)
 
       const response: GetActiveBookmarksResponse = {
         code: 200,
         success: true,
         message: "Bookmarks retrieved successfully",
-        //  bookmarks:bookmarks
-         bookmarks: bookmarks.bookmarks, 
-        // data: formatted, 
+        bookmarks:bookmarks.bookmarks,
+        nextCursor:bookmarks.nextCursor,
+        hasNextPage:bookmarks.hasNextPage
       };
 
       return res.status(200).json(response);
@@ -206,4 +206,6 @@ public async getActiveBookmarks(req: Request, res: Response, next: NextFunction)
       next(error)
     }
   }
-}
+} 
+
+

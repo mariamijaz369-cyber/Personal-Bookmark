@@ -1,5 +1,10 @@
 import { Bookmark, IBookmark } from "../models/bookmark.model";
 import { FilterQuery, Types } from "mongoose"
+interface GetActiveBookmarkResult {
+  bookmarks: IBookmark[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
 /**
  * Find bookmark by user and URL
  */
@@ -14,6 +19,9 @@ export async function findBookmarkByUserAndUrl(
  * Bookmark Repository (single definition)
  */
 export class BookmarkRepository {
+  static GetActiveBookmarks(userId: string, arg1: string, arg2: string, cursor: string | undefined, arg4: number, sortOption: Record<string, 1 | -1>) {
+    throw new Error("Method not implemented.");
+  }
  
   /**
    * Create a new bookmark
@@ -102,72 +110,44 @@ export class BookmarkRepository {
     });
   }
 
-  /**
-   * Filter bookmarks by tag
-   */
-  async findByTag(userId: Types.ObjectId, tag: string): Promise<IBookmark[]> {
-    return Bookmark.find({
-      userId,
-      tags: tag,
-      deletedAt: null,
-    });
-  }
-  // getactivebookmark
-   async GetActiveBookmark(userId: string, searchQuery: string = "", tags: string="",cursor?: string, limit = 10) {
-    // Base filter
-    const filter: FilterQuery<typeof Bookmark> = {
-      userId,
-      $or: [{ deletedAt: null }, { deletedAt: { $exists: false } }],
-    };
+  async GetActiveBookmark(
+    userId: string,
+    searchQuery = "",
+    tags = "",
+    cursor?: string,
+    limit = 10,
+    sort = "createdAt:desc" // default sorting
+  ): Promise<GetActiveBookmarkResult> {
+    const query: any = { userId };
 
-    // 🔎 Apply search query if exists
-    if (searchQuery.trim().length > 0) {
-      const words = searchQuery.trim().split(/\s+/).map(this.escapeRegex);
-      const pattern = words.join("|");
-      filter.title = { $regex: pattern, $options: "i" };
+    // Filter by search query
+    if (searchQuery) query.title = { $regex: searchQuery, $options: "i" };
+
+    // Filter by tags
+    if (tags) query.tags = { $in: tags.split(",") };
+
+    // Cursor pagination (_id greater than last cursor)
+    if (cursor) query._id = { $gte: cursor };
+
+    // Parse sort string (e.g., "createdAt:desc" or "title:asc")
+    const [field, order] = sort.split(":");
+    const sortObj: any = {};
+    sortObj[field] = order === "desc" ? -1 : 1;
+
+    // Fetch bookmarks with limit + 1 (to check next page)
+    const bookmarks = await Bookmark.find(query)
+      .sort(sortObj)
+      .limit(limit + 1);
+
+    let hasNextPage = false;
+    let nextCursor: string | null = null;
+
+    if (bookmarks.length > limit) {
+      hasNextPage = true;
+      const nextItem = bookmarks.pop(); // remove extra
+      nextCursor = nextItem?._id.toString() ?? null;
     }
 
-    // 🏷️ Apply tags filter if tags exist
-    if (tags) {
-      filter.tags = { $all: tags }; 
-      // $all → ensures that all given tags must be present in the bookmark
-    }
-    
-  // ⏩ Apply cursor (pagination)
-  if (cursor) {
-    filter.createdAt = { $lt: new Date(cursor) }; 
-    // $lt = get bookmarks older than the cursor date
+    return { bookmarks, nextCursor, hasNextPage };
   }
-
-  // Fetch Bookmarks
-  const bookmarks = await Bookmark.find(
-    filter,
-    { title: 1, url: 1, tags: 1, notes: 1, createdAt: 1 }
-  )
-    .sort({ _id: -1 }) // 👉 use _id for consistent ordering
-    .limit(limit + 1); // fetch 1 extra to check if more exist
-// 🔑 Check if there's a next page
-  const hasNextPage = bookmarks.length > limit;
-
-  // remove the extra record if exists
-  if (hasNextPage) {
-    bookmarks.pop();
-  }
-
-  // 📌 Next cursor = createdAt of last item
-  const nextCursor = bookmarks.length > 0
-    ? bookmarks[bookmarks.length - 1].createdAt.toISOString()
-    : null;
-
-  return {
-    bookmarks,
-    nextCursor,
-    hasNextPage,
-  };
-}
-
-// Helper to escape regex special chars
-private escapeRegex(w: string): string {
-  return w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 }
