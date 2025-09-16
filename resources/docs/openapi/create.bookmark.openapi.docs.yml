@@ -1,10 +1,10 @@
 paths:
-  /bookmarks:
+  /bookmark:
     post:
       summary: Create a new bookmark
       description: Creates a bookmark for the logged-in user.
       tags:
-        - Bookmarks
+        - Bookmark
       security:
         - bearerAuth: []   # 🔑 Requires JWT token in Authorization header
       requestBody:

@@ -7,6 +7,7 @@ import bookmarkRoutes from "./routes/bookmark.routes";
 import rateLimit from "express-rate-limit";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
+import cors from "cors";
 dotenv.config();
 
 const app: Application = express();
@@ -63,3 +64,4 @@ const swaggerOptions = {
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs)); 
+app.use(cors());

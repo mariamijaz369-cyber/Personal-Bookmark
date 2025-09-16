@@ -4,7 +4,7 @@ paths:
       summary: Delete a bookmark (soft delete)
       description: Marks a bookmark as deleted by setting `deletedAt`. The bookmark must belong to the logged-in user.
       tags:
-        - Bookmarks
+        - Bookmark
       security:
         - bearerAuth: []   # 🔑 Requires JWT token
       parameters:

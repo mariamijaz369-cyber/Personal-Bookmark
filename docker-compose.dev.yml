@@ -1,0 +1,29 @@
+version: "3.9"
+services:
+  api:
+    build:
+      context: .
+      dockerfile: dockerfile.dev
+    container_name: personal-bookmark-api-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/bookmarks
+      - NODE_ENV=development
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo:6
+    container_name: personal-bookmark-mongo-dev
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data_dev:/data/db
+
+volumes:
+  mongo_data_dev:

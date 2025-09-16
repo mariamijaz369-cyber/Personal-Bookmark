@@ -4,7 +4,7 @@ paths:
       summary: Update a bookmark
       description: Updates bookmark fields (title, url, tags, notes) if the bookmark belongs to the logged-in user.
       tags:
-        - Bookmarks
+        - Bookmark
       security:
         - bearerAuth: []   # 🔑 Requires JWT token in Authorization header
       parameters:
