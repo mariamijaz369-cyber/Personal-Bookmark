@@ -8,7 +8,7 @@ const clickController = new ClickController();
  * @route POST /click/:bookmarkId
  * @desc Track a click for a specific bookmark
  */
-router.post("/:bookmarkId", (req, res, next) =>
+router.post("/click/:bookmarkId", (req, res, next) =>
   clickController.trackClick(req, res, next)
 );
 
