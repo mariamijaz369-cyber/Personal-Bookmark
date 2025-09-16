@@ -1,0 +1,60 @@
+paths:
+  /register:
+    post:
+      summary: User Registration (Signup)
+      description: Register a new user with name, email, password, and date of birth.
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+                - dateOfBirth
+              properties:
+                name:
+                  type: string
+                  example: "John Doe"
+                email:
+                  type: string
+                  format: email
+                  example: "john@example.com"
+                password:
+                  type: string
+                  format: password
+                  example: "Pass@123"
+                dateOfBirth:
+                  type: string
+                  format: date
+                  example: "1995-08-15"
+      responses:
+        "201":
+          description: Signup successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "✅ Signup successful"
+                  session:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR..."
+                  userName:
+                    type: string
+                    example: "John Doe"
+        "400":
+          description: Invalid input
+        "409":
+          description: Email already registered
+        "500":
+          description: Internal server error

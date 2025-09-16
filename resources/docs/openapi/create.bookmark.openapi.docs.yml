@@ -1,0 +1,76 @@
+paths:
+  /bookmarks:
+    post:
+      summary: Create a new bookmark
+      description: Creates a bookmark for the logged-in user.
+      tags:
+        - Bookmarks
+      security:
+        - bearerAuth: []   # 🔑 Requires JWT token in Authorization header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - title
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://example.com"
+                title:
+                  type: string
+                  example: "My Example Site"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["tech", "news"]
+                notes:
+                  type: string
+                  example: "This is a useful website."
+      responses:
+        "201":
+          description: Bookmark created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Bookmark created successfully
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 650a3f9e8d1a2c001f3e4b56
+                      url:
+                        type: string
+                        example: "https://example.com"
+                      title:
+                        type: string
+                        example: "My Example Site"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["tech", "news"]
+                      notes:
+                        type: string
+                        example: "This is a useful website."
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-16T12:34:56.000Z"
+        "401":
+          description: Unauthorized - Missing or invalid token
+        "400":
+          description: Failed to create bookmark

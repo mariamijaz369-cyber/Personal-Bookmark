@@ -1,0 +1,36 @@
+paths:
+  /logout:
+    post:
+      summary: User logout
+      description: Logs out the currently authenticated user by invalidating their token.
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []   # 🔑 Requires JWT token in Authorization header
+      responses:
+        "200":
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ✅ Logout successful
+        "401":
+          description: Unauthorized (missing or invalid token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: ❌ Missing token

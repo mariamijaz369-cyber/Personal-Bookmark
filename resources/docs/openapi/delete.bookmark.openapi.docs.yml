@@ -1,0 +1,81 @@
+paths:
+  /deletebookmark/{id}:
+    delete:
+      summary: Delete a bookmark (soft delete)
+      description: Marks a bookmark as deleted by setting `deletedAt`. The bookmark must belong to the logged-in user.
+      tags:
+        - Bookmarks
+      security:
+        - bearerAuth: []   # 🔑 Requires JWT token
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the bookmark to delete
+          example: 650a3f9e8d1a2c001f3e4b56
+      responses:
+        "200":
+          description: ✅ Bookmark deleted successfully (soft delete)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ✅ Bookmark deleted
+                  deletedBookmark:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 650a3f9e8d1a2c001f3e4b56
+                      url:
+                        type: string
+                        example: "https://example.com"
+                      title:
+                        type: string
+                        example: "Example Site"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["tech", "learning"]
+                      notes:
+                        type: string
+                        example: "A useful website"
+                      deletedAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-16T14:32:10.000Z"
+        "404":
+          description: ❌ Bookmark not found or not owned by the user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: ❌ Bookmark not found
+        "500":
+          description: ❌ Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Unexpected error occurred

@@ -1,0 +1,90 @@
+/api/bookmarks/active:
+  get:
+    summary: Get active bookmarks
+    description: Retrieve all active bookmarks for the authenticated user with optional search, tag filtering, sorting, and cursor-based pagination.
+    tags:
+      - Bookmarks
+    security:
+      - bearerAuth: []   # JWT authentication
+    parameters:
+      - in: query
+        name: searchQuery
+        schema:
+          type: string
+        required: false
+        description: Search bookmarks by title (case-insensitive)
+      - in: query
+        name: tags
+        schema:
+          type: string
+        required: false
+        description: Comma-separated list of tags (e.g., `tech,backend`)
+      - in: query
+        name: cursor
+        schema:
+          type: string
+        required: false
+        description: Pagination cursor (bookmark ID of last item from previous page)
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 10
+          example: 5
+        required: false
+        description: Number of bookmarks per page
+      - in: query
+        name: sort
+        schema:
+          type: string
+          enum: [createdAt:asc, createdAt:desc, title:asc, title:desc]
+          default: createdAt:desc
+        required: false
+        description: Sort order (`field:asc|desc`)
+    responses:
+      "200":
+        description: List of bookmarks retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bookmarks:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "650fa8b12e1c4d45a23bcd12"
+                      url:
+                        type: string
+                        example: "https://example.com"
+                      title:
+                        type: string
+                        example: "My Example Bookmark"
+                      notes:
+                        type: string
+                        example: "This is an example bookmark note."
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["tech", "backend"]
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-16T12:34:56.000Z"
+                nextCursor:
+                  type: string
+                  nullable: true
+                  example: "650fa8b12e1c4d45a23bcd13"
+                hasNextPage:
+                  type: boolean
+                  example: true
+      "400":
+        description: Invalid query parameters
+      "401":
+        description: Unauthorized (no or invalid token)
+      "500":
+        description: Server error

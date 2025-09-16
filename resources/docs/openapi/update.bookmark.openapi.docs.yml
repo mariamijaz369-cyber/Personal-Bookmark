@@ -1,0 +1,87 @@
+paths:
+  /bookmark/{id}:
+    put:
+      summary: Update a bookmark
+      description: Updates bookmark fields (title, url, tags, notes) if the bookmark belongs to the logged-in user.
+      tags:
+        - Bookmarks
+      security:
+        - bearerAuth: []   # 🔑 Requires JWT token in Authorization header
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID of the bookmark to update
+          example: 650a3f9e8d1a2c001f3e4b56
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Updated Example Site"
+                url:
+                  type: string
+                  format: uri
+                  example: "https://updated-example.com"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  example: ["updated", "bookmark"]
+                notes:
+                  type: string
+                  example: "Updated note about this bookmark."
+      responses:
+        "200":
+          description: ✅ Bookmark updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: ✅ Bookmark updated successfully
+                  bookmark:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 650a3f9e8d1a2c001f3e4b56
+                      url:
+                        type: string
+                        example: "https://updated-example.com"
+                      title:
+                        type: string
+                        example: "Updated Example Site"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["updated", "bookmark"]
+                      notes:
+                        type: string
+                        example: "Updated note about this bookmark."
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-16T12:34:56.000Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2025-09-17T09:21:33.000Z"
+        "400":
+          description: ❌ Bad request (nothing to update OR bookmark deleted)
+        "404":
+          description: ❌ Bookmark not found or not yours
+        "500":
+          description: ❌ Server error
