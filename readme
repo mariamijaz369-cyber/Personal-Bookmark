@@ -1,0 +1,83 @@
+	Personal	Bookmark	Manager
+	A	simple	backend	API	where	users	can	register,	log	in,	and	manage	their	personal	bookmarks.	Each	bookmark	can
+have	tags,	notes,	and	can	be	search. 
+
+📦 Tech Stack
+Node.js + Express
+TypeScript
+MongoDB
+Docker + Docker Compose
+Joi (Validation)
+bcrypt (Password hashing)
+Token-Based (Authentication)
+🔧 Project Structure
+
+src/
+│
+├── controllers/
+├── services/
+├── repositories/
+├── middlewares/
+├── routes/
+├── error/
+├── dto/
+└── models/
+
+🚀 Getting Started
+🔹 Prerequisites
+Node.js (v18+)
+npm
+MongoDB (local or cloud)
+🔄 Running Locally (Without Docker)
+1. Clone the Repo
+git clone https://github.com/TalhaAhsanSh/Sample-Todo-App.git
+cd Sample-Todo-App
+2. Install Dependencies
+npm install
+3. Setup .env
+Create a .env file in the root directory:
+
+4. Run the Project
+Development Mode (with hot reload):
+npm run dev
+Build the project:
+npm run build
+Run Built App:
+npm start
+🐳 Running with Docker
+1. Build and Start Containers
+docker-compose up --build
+This will:
+
+Build and run the backend app
+Start a MongoDB container
+Connect them on the same network
+2. Environment Configuration
+Ensure your .env file has:
+
+PORT=PORT
+MONGODB_URI=MONGODB_URI
+The mongo in the URI matches the Mongo service name in docker-compose.yml.
+
+3. Access the API
+Once running, the API will be available at:
+
+http://localhost:8000
+📫 API Endpoints (Basic)
+Method	Route	Description
+POST	/signup	Register a new user
+POST	/login	Login and create session
+POST	/logout	Logout user
+GET	/me	Get current user info
+POST	/task	Create a todo
+...	...	More to be added
+🧪 Testing API
+Use Postman, Thunder Client, or cURL to test the API endpoints. Remember to pass the Authorization Bearer Token for protected routes.
+
+🧼 Scripts
+"scripts": {
+  "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "start:watch": "nodemon dist/server.js"
+}
