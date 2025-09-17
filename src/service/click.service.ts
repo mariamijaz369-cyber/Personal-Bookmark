@@ -1,6 +1,6 @@
 import { ClickRepository } from "../repositiories/click.repo";
-import Click, { IClick } from "../models/click.model";
-
+import { IClick } from "../models/click.model";
+import { url } from "inspector";
 
 export class ClickService {
   private clickRepository: ClickRepository;
@@ -10,24 +10,23 @@ export class ClickService {
   }
 
   /**
-   * Track a click for a specific bookmark
+   * 🔹 Track a click for a specific user on a bookmark
    */
-  async trackClick(bookmarkId: string, url: string): Promise<IClick> {
-    return await this.clickRepository.trackClick(bookmarkId, url);
+  async trackClick(userId: string, bookmarkId: string, url: string): Promise<IClick> {
+    return await this.clickRepository.trackClick(userId, bookmarkId,url);
   }
 
   /**
-   * Get stats for a single bookmark (total clicks, last clicked time, etc.)
+   * 🔹 Get click stats for a user on a single bookmark
    */
-  async getClickStats(bookmarkId: string): Promise<IClick | null> {
-    return await this.clickRepository.getClickStats(bookmarkId);
+  async getClickStats(userId: string, bookmarkId: string): Promise<IClick | null> {
+    return await this.clickRepository.getClickStats(userId, bookmarkId);
   }
 
   /**
-   * Get stats for all bookmarks (for analytics dashboards/admin)
+   * 🔹 Get stats for all bookmarks (for analytics dashboards/admin)
    */
   async getAllClicks(): Promise<IClick[]> {
     return await this.clickRepository.getAllClicks();
   }
 }
-

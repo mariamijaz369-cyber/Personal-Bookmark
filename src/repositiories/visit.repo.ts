@@ -1,25 +1,25 @@
+// src/repositories/visit.repo.ts
 import mongoose from "mongoose";
 import BookmarkVisit, { IBookmarkVisit } from "../models/visit.model";
 
 export class BookmarkVisitRepository {
   /**
-   * 🔹 Track a visit for a user and bookmark
-   * If the record exists, increment visitCount; otherwise, create a new record
+   * 🔹 Track a visit for a user (userId comes from token, not client)
    */
   async trackVisit(userId: string, bookmarkId: string): Promise<IBookmarkVisit> {
+    const userObjId = new mongoose.Types.ObjectId(userId);   // from token
+    const bookmarkObjId = new mongoose.Types.ObjectId(bookmarkId);
+
     const visit = await BookmarkVisit.findOneAndUpdate(
+      { userId: userObjId, bookmarkId: bookmarkObjId }, 
       {
-        userId: new mongoose.Types.ObjectId(userId),
-        bookmarkId: new mongoose.Types.ObjectId(bookmarkId),
+        $inc: { visitCount: 1 },
+        $set: { lastVisitedAt: new Date() },
       },
-      {
-        $inc: { visitCount: 1 },         // increment visit count
-        $set: { lastVisitedAt: new Date() }, // update last visited timestamp
-      },
-      { new: true, upsert: true }       // create if not exists and return new doc
+      { new: true, upsert: true }
     ).exec();
 
-    return visit;
+    return visit!;
   }
 
   /**
@@ -27,11 +27,11 @@ export class BookmarkVisitRepository {
    */
   async getVisitStats(userId: string, bookmarkId: string): Promise<number> {
     const visit = await BookmarkVisit.findOne({
-      userId: new mongoose.Types.ObjectId(userId),
+      userId: new mongoose.Types.ObjectId(userId),   // from token
       bookmarkId: new mongoose.Types.ObjectId(bookmarkId),
     }).exec();
 
-    return visit?.visitCount ?? 0; // return 0 if no record
+    return visit?.visitCount ?? 0;
   }
 
   /**
@@ -39,8 +39,8 @@ export class BookmarkVisitRepository {
    */
   async getAllVisits(): Promise<IBookmarkVisit[]> {
     return await BookmarkVisit.find()
-      .populate("userId", "name email")       // optional: populate user info
-      .populate("bookmarkId", "title url")   // optional: populate bookmark info
+      .populate("userId", "name email")
+      .populate("bookmarkId", "title url")
       .exec();
   }
 }

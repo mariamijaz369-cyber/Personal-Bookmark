@@ -1,67 +1,79 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { BookmarkVisitService } from "../service/visit.service";
 
+const visitService = new BookmarkVisitService();
+
 export class BookmarkVisitController {
-  private bookmarkVisitService: BookmarkVisitService;
-
-  constructor() {
-    this.bookmarkVisitService = new BookmarkVisitService();
-  }
-
   /**
-   * 🔹 Track a visit for a user and bookmark
+   * 🔹 Track a visit (userId comes from token, bookmarkId from param)
    */
-  async trackVisit(req: Request, res: Response, next: NextFunction) {
+  async trackVisit(req: Request, res: Response): Promise<void> {
     try {
-      const userId = res.locals.user; // assuming user id comes from auth middleware
-      const { bookmarkId } = req.params;
+      const userId = res.locals.user; // 👈 taken from token (auth middleware)
+      const { bookmarkId } = req.params;   // 👈 only bookmarkId is required from client
 
-      const visit = await this.bookmarkVisitService.trackVisit(userId, bookmarkId);
+      if (!bookmarkId) {
+        res.status(400).json({ success: false, message: "bookmarkId is required" });
+        return;
+      }
+    if (!userId) {
+        res.status(400).json({ success: false, message: "login is required" });
+        return;
+      }
+      const visit = await visitService.trackVisit(userId, bookmarkId);
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
-        message: "✅ Visit tracked successfully",
+        message: "Visit tracked successfully",
         data: visit,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
   /**
-   * 🔹 Get total visits for a user on a specific bookmark
+   * 🔹 Get visit stats for a bookmark (userId from token, bookmarkId from param)
    */
-  async getVisitStats(req: Request, res: Response, next: NextFunction) {
+  async getVisitStats(req: Request, res: Response): Promise<void> {
     try {
-      const userId = res.locals.user;
+      const userId = (req as any).user.id;
       const { bookmarkId } = req.params;
 
-      const count = await this.bookmarkVisitService.getVisitStats(userId, bookmarkId);
+      if (!bookmarkId) {
+        res.status(400).json({ success: false, message: "bookmarkId is required" });
+        return;
+      }
+      if (!userId) {
+        res.status(400).json({ success: false, message: "login is required" });
+        return;
+      }
+      const count = await visitService.getVisitStats(userId, bookmarkId);
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
-        message: "✅ Visit stats retrieved successfully",
-        data: { visitCount: count },
+        message: "Visit stats retrieved successfully",
+        visitCount: count,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 
   /**
    * 🔹 Get all visit records (for admin/analytics)
    */
-  async getAllVisits(req: Request, res: Response, next: NextFunction) {
+  async getAllVisits(req: Request, res: Response): Promise<void> {
     try {
-      const visits = await this.bookmarkVisitService.getAllVisits();
+      const visits = await visitService.getAllVisits();
 
-      return res.status(200).json({
+      res.status(200).json({
         success: true,
-        message: "✅ All visits retrieved successfully",
+        message: "All visits retrieved successfully",
         data: visits,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
     }
   }
 }

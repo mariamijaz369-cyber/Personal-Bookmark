@@ -2,30 +2,30 @@ import { BookmarkVisitRepository } from "../repositiories/visit.repo";
 import { IBookmarkVisit } from "../models/visit.model";
 
 export class BookmarkVisitService {
-  private bookmarkVisitRepository: BookmarkVisitRepository;
+  private visitRepository: BookmarkVisitRepository;
 
   constructor() {
-    this.bookmarkVisitRepository = new BookmarkVisitRepository();
+    this.visitRepository = new BookmarkVisitRepository();
   }
 
   /**
-   * 🔹 Track a visit for a user and bookmark
+   * 🔹 Track a visit (userId comes from token, bookmarkId from request param)
    */
   async trackVisit(userId: string, bookmarkId: string): Promise<IBookmarkVisit> {
-    return await this.bookmarkVisitRepository.trackVisit(userId, bookmarkId);
+    return await this.visitRepository.trackVisit(userId, bookmarkId);
   }
 
   /**
-   * 🔹 Get total visits for a user on a bookmark
+   * 🔹 Get total visit stats for a bookmark (userId comes from token)
    */
   async getVisitStats(userId: string, bookmarkId: string): Promise<number> {
-    return await this.bookmarkVisitRepository.getVisitStats(userId, bookmarkId);
+    return await this.visitRepository.getVisitStats(userId, bookmarkId);
   }
 
   /**
-   * 🔹 Get all visit records (for admin or analytics dashboards)
+   * 🔹 Get all visit records (for admin/analytics)
    */
   async getAllVisits(): Promise<IBookmarkVisit[]> {
-    return await this.bookmarkVisitRepository.getAllVisits();
+    return await this.visitRepository.getAllVisits();
   }
 }

@@ -1,25 +1,28 @@
+// src/routes/visit.routes.ts
 import { Router } from "express";
 import { BookmarkVisitController } from "../controllers/visit.controller";
 
 const router = Router();
 const bookmarkVisitController = new BookmarkVisitController();
 
-// 🔹 Track a visit for a specific bookmark
-// POST /api/bookmarks/:bookmarkId/visit
-router.post("/:bookmarkId/visit", (req, res, next) =>
-  bookmarkVisitController.trackVisit(req, res, next)
+/**
+ * 🔹 Routes for visits
+ */
+
+// Track a visit (user visits a bookmark)
+router.post("/visit/:bookmarkId", (req, res) =>
+  bookmarkVisitController.trackVisit(req, res)
 );
 
-// // 🔹 Get total visits for a user on a specific bookmark
-// // GET /api/bookmarks/:bookmarkId/visit/stats
-// router.get("/:bookmarkId/visit/stats", (req, res, next) =>
-//   bookmarkVisitController.getVisitStats(req, res, next)
+// Get stats for a specific user + bookmark
+// router.get("/:userId/:bookmarkId/stats", (req, res) =>
+//   bookmarkVisitController.getVisitStats(req, res)
 // );
 
-// // 🔹 Get all visits (admin/analytics)
-// // GET /api/bookmarks/visits
-// router.get("/visits", (req, res, next) =>
-//   bookmarkVisitController.getAllVisits(req, res, next)
+// // Get all visits (admin/analytics)
+// router.get("/", (req, res) =>
+//   bookmarkVisitController.getAllVisits(req, res)
 // );
 
 export default router;
+

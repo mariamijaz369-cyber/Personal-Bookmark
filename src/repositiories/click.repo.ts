@@ -2,22 +2,39 @@ import Click, { IClick } from "../models/click.model";
 import mongoose from "mongoose";
 
 export class ClickRepository {
-  async trackClick(bookmarkId: string, url: string): Promise<IClick> {
+  /**
+   * 🔹 Track a click for a user on a bookmark
+   */
+  async trackClick(userId: string, bookmarkId: string, url: string): Promise<IClick> {
     return await Click.findOneAndUpdate(
-      { bookmarkId: new mongoose.Types.ObjectId(bookmarkId) },
-      {
-        $inc: { clickCount: 1 },
-        $set: { lastClickedAt: new Date(), url },
+      { 
+        userId: new mongoose.Types.ObjectId(userId), 
+        bookmarkId: new mongoose.Types.ObjectId(bookmarkId) 
       },
-      { new: true, upsert: true }
-    );
+      {
+        $inc: { clickCount: 1 },                   // Increase click count
+        $set: { lastClickedAt: new Date(), url },  // Update last clicked date + url
+      },
+      { new: true, upsert: true } // Create new if doesn't exist
+    ).exec();
   }
 
-  async getClickStats(bookmarkId: string): Promise<IClick | null> {
-    return await Click.findOne({ bookmarkId });
+  /**
+   * 🔹 Get click stats for a user on a specific bookmark
+   */
+  async getClickStats(userId: string, bookmarkId: string): Promise<IClick | null> {
+    return await Click.findOne({ 
+      userId: new mongoose.Types.ObjectId(userId), 
+      bookmarkId: new mongoose.Types.ObjectId(bookmarkId) 
+    }).exec();
   }
 
+  /**
+   * 🔹 Get all click records (for analytics/admin)
+   */
   async getAllClicks(): Promise<IClick[]> {
-    return await Click.find().populate("bookmarkId", "title url");
+    return await Click.find()
+      .populate("userId", "name email")        // show which user clicked
+      .populate("bookmarkId", "title url");    // show bookmark details
   }
 }

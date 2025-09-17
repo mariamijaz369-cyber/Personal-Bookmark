@@ -1,31 +1,32 @@
 import { Router } from "express";
-import { ClickController } from "../controllers/click.controller";  // controller file you’ll create
+import { ClickController } from "../controllers/click.controller";
+import { isAuthenticated } from "../middlewares/auth.middleware"; // ✅ middleware that sets res.locals.user
 
 const router = Router();
 const clickController = new ClickController();
 
 /**
- * @route POST /click/:bookmarkId
- * @desc Track a click for a specific bookmark
+ * 🔹 Track a click for a bookmark (user must be logged in)
+ * POST /clicks/:bookmarkId
  */
 router.post("/click/:bookmarkId", (req, res, next) =>
   clickController.trackClick(req, res, next)
 );
 
 // /**
-//  * @route GET /click/:bookmarkId
-//  * @desc Get total click stats for a bookmark
+//  * 🔹 Get click stats for a specific bookmark (for logged-in user)
+//  * GET /clicks/:bookmarkId
 //  */
-// router.get("/:bookmarkId", (req, res, next) =>
+// router.get("/:bookmarkId", isAuthenticated, (req, res, next) =>
 //   clickController.getClickStats(req, res, next)
 // );
 
 // /**
-//  * @route GET /click
-//  * @desc Get all click records (admin/reporting)
+//  * 🔹 Get all click records (admin/analytics)
+//  * GET /clicks
 //  */
-// router.get("/", (req, res, next) =>
+// router.get("/", isAuthenticated, (req, res, next) =>
 //   clickController.getAllClicks(req, res, next)
 // );
 
-export default router;
+ export default router;
