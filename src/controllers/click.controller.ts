@@ -85,8 +85,8 @@ export class ClickController {
   }
   async getMostClickedUrl(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = res.locals.user;
-
+      const userId  = res.locals.user;
+     console.log(userId)
       const mostClicked = await this.clickService.getMostClickedUrl(userId);
 
       if (!mostClicked) {

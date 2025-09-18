@@ -23,7 +23,7 @@ router.post("/visit/:bookmarkId", (req, res) =>
 // router.get("/", (req, res) =>
 //   bookmarkVisitController.getAllVisits(req, res)
 // );
-router.get("/most-visited/:userId", (req, res) => 
+router.get("/most-visited", (req, res) => 
   bookmarkVisitController.getMostVisitedUrl(req, res));
 
 // router.get("/stats/:userId", getMostFavoriteUrlsController);

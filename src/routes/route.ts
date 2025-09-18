@@ -5,5 +5,6 @@ import authroutes from "./auth.routes";
 import Clickroutes from"./click.routes";
 import visitroutes from "./visit.routes";
 import bookmarkroutes from "./bookmark.routes";
-const routes = [authroutes,bookmarkroutes,Clickroutes,visitroutes];
+import statsroutes from "./stats.routes";
+const routes = [authroutes,bookmarkroutes,Clickroutes,visitroutes,statsroutes];
 export default routes;

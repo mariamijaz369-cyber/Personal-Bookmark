@@ -1,25 +1,20 @@
-import { getMostFavoriteUrlsRepo } from "../repositiories/stats.repo";
+// src/services/stats.service.ts
+import { getMostStatsRepo } from "../repositiories/stats.repo";
 
-export async function fetchMostFavoriteUrls(userId: string) {
+export async function getMostStatsService(userId: string) {
   try {
     // Call repo function
-    const result = await getMostFavoriteUrlsRepo(userId);
+    const result = await getMostStatsRepo(userId);
 
-    // Pass repo result directly (or transform if needed)
-    return {
-      code: result.code,
-      success: true,
-      message: result.message,
-      data: result.data,
-    };
+    return result; // repo already returns { code, status, message, data }
   } catch (error: any) {
-    console.error("Service Error:", error.message);
+    console.error("Error in getMostStatsService:", error);
 
     return {
       code: 500,
-      success: false,
-      message: "Unexpected error occurred in service",
-      data: null,
+      status: "error",
+      message: "Something went wrong while fetching most stats",
+      error: error.message || error,
     };
   }
 }

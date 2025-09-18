@@ -1,101 +1,105 @@
 import mongoose from "mongoose";
 import MostFavoriteUrl from "../models/mostFavoriteUrl.model";
+const Click = mongoose.model("Click");
+const BookmarkVisit = mongoose.model("BookmarkVisit");
+const Bookmark = mongoose.model("Bookmark"); // ✅ Make sure this exists
 
-// ✅ Define interfaces for populated documents
-interface PopulatedBookmark {
-  _id: string;
+interface BookmarkDoc {
+  _id: mongoose.Types.ObjectId;
   title: string;
   url: string;
 }
+type BookmarkInfo = { _id: string; title?: string; url?: string };
 
-interface PopulatedClick {
-  bookmarkId: PopulatedBookmark;
-  clickCount: number;
-}
-
-interface PopulatedVisit {
-  bookmarkId: PopulatedBookmark;
-  visitCount: number;
-}
-
-// ✅ Load models
-const Click = mongoose.model("Click");
-const BookmarkVisit = mongoose.model("BookmarkVisit");
-
-export async function getMostFavoriteUrlsRepo(userId: string) {
+export async function getMostStatsRepo(userId: string) {
   const userObjId = new mongoose.Types.ObjectId(userId);
 
-  // 1️⃣ Most clicked URL
-  const mostClickedDoc = await Click.findOne({ userId: userObjId })
-    .sort({ clickCount: -1 })
-    .populate<{ bookmarkId: PopulatedBookmark }>("bookmarkId", "title url")
-    .lean<PopulatedClick>();
+  // --- 1) Aggregate total clicks ---
+  const clicksAgg: { _id: mongoose.Types.ObjectId; totalClicks: number }[] =
+    await Click.aggregate([
+      { $match: { userId: userObjId } },
+      { $group: { _id: "$bookmarkId", totalClicks: { $sum: "$clickCount" } } },
+      { $sort: { totalClicks: -1 } },
+    ]);
 
-  const mostClicked = mostClickedDoc
+  // --- 2) Aggregate total visits ---
+  const visitsAgg: { _id: mongoose.Types.ObjectId; totalVisits: number }[] =
+    await BookmarkVisit.aggregate([
+      { $match: { userId: userObjId } },
+      { $group: { _id: "$bookmarkId", totalVisits: { $sum: "$visitCount" } } },
+      { $sort: { totalVisits: -1 } },
+    ]);
+
+  // --- 3) Top single docs ---
+  const topClick = clicksAgg.length ? clicksAgg[0] : null;
+  const topVisit = visitsAgg.length ? visitsAgg[0] : null;
+
+  // ✅ Helper function
+  const fetchBookmark = async (
+    id?: mongoose.Types.ObjectId | string
+  ): Promise<BookmarkInfo | null> => {
+    if (!id) return null;
+    const b = await Bookmark.findById(id)
+      .select("title url")
+      .lean<BookmarkDoc | null>();
+    return b
+      ? { _id: b._id.toString(), title: b.title, url: b.url }
+      : null;
+  };
+
+  // ✅ Get populated info
+  const mostClickedUrl = topClick
     ? {
-        bookmarkId: mostClickedDoc.bookmarkId,
-        clickCount: mostClickedDoc.clickCount,
+        ...(await fetchBookmark(topClick._id)),
+        clickCount: topClick.totalClicks,
       }
     : null;
 
-  // 2️⃣ Most visited URL
-  const mostVisitedDoc = await BookmarkVisit.findOne({ userId: userObjId })
-    .sort({ visitCount: -1 })
-    .populate<{ bookmarkId: PopulatedBookmark }>("bookmarkId", "title url")
-    .lean<PopulatedVisit>();
-
-  const mostVisited = mostVisitedDoc
+  const mostVisitedUrl = topVisit
     ? {
-        bookmarkId: mostVisitedDoc.bookmarkId,
-        visitCount: mostVisitedDoc.visitCount,
+        ...(await fetchBookmark(topVisit._id)),
+        visitCount: topVisit.totalVisits,
       }
     : null;
 
-  // 3️⃣ Compute favorite scores
-  const scoreMap: Record<string, number> = {};
-  if (mostClicked) scoreMap[mostClicked.bookmarkId._id] = mostClicked.clickCount;
-  if (mostVisited) {
-    scoreMap[mostVisited.bookmarkId._id] =
-      (scoreMap[mostVisited.bookmarkId._id] || 0) + mostVisited.visitCount;
+  // --- 4) Decide mostFavoriteUrl (never null) ---
+  let mostFavoriteUrl: any = null;
+  if (mostClickedUrl && mostVisitedUrl) {
+    mostFavoriteUrl =
+      (mostClickedUrl.clickCount ?? 0) >= (mostVisitedUrl.visitCount ?? 0)
+        ? { ...mostClickedUrl, favoriteScore: mostClickedUrl.clickCount }
+        : { ...mostVisitedUrl, favoriteScore: mostVisitedUrl.visitCount };
+  } else if (mostClickedUrl) {
+    mostFavoriteUrl = {
+      ...mostClickedUrl,
+      favoriteScore: mostClickedUrl.clickCount,
+    };
+  } else if (mostVisitedUrl) {
+    mostFavoriteUrl = {
+      ...mostVisitedUrl,
+      favoriteScore: mostVisitedUrl.visitCount,
+    };
   }
 
-  // 4️⃣ Find the bookmark with the highest score
-  let maxBookmarkId: string | null = null;
-  let maxScore = 0;
-  for (const [bookmarkId, score] of Object.entries(scoreMap)) {
-    if (score > maxScore) {
-      maxScore = score;
-      maxBookmarkId = bookmarkId;
-    }
-  }
-
-  // 5️⃣ Update MostFavoriteUrl collection
-  let mostFavorite = null;
-  if (maxBookmarkId) {
-    const doc = await MostFavoriteUrl.findOneAndUpdate(
-      { userId: userObjId, bookmarkId: maxBookmarkId },
-      { favoriteScore: maxScore, lastUpdatedAt: new Date() },
+  // --- 5) Save to DB ---
+  if (mostFavoriteUrl?._id) {
+    await MostFavoriteUrl.findOneAndUpdate(
+      { userId: userObjId, bookmarkId: mostFavoriteUrl._id },
+      { favoriteScore: mostFavoriteUrl.favoriteScore, lastUpdatedAt: new Date() },
       { upsert: true, new: true }
-    ).populate<{ bookmarkId: PopulatedBookmark }>("bookmarkId", "title url");
-
-    if (doc && doc.bookmarkId) {
-      mostFavorite = {
-        bookmarkId: doc.bookmarkId,
-        favoriteScore: doc.favoriteScore,
-      };
-    }
+    );
   }
 
-  // 6️⃣ Return standardized response
+  // --- 6) Final Response ---
   return {
     code: 200,
     status: "success",
     message:
-      "Most clicked, most visited, and most favorite URLs fetched successfully",
+      "Most clicked, most visited and most favorite URLs fetched successfully",
     data: {
-      mostClickedUrl: mostClicked?.bookmarkId || null,
-      mostVisitedUrl: mostVisited?.bookmarkId || null,
-      mostFavoriteUrl: mostFavorite?.bookmarkId || null,
+      mostClickedUrl,
+      mostVisitedUrl,
+      mostFavoriteUrl, // ✅ guaranteed not null
     },
   };
 }

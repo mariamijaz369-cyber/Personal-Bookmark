@@ -28,7 +28,7 @@ router.post("/click/:bookmarkId", (req, res, next) =>
 // router.get("/", isAuthenticated, (req, res, next) =>
 //   clickController.getAllClicks(req, res, next)
 // );
-router.get("/most-clicked/:userId", (req, res) =>
+router.get("/most-clicked", (req, res) =>
   clickController.getMostClickedUrl(req, res)
 );
  export default router;

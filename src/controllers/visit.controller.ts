@@ -81,7 +81,7 @@ export class BookmarkVisitController {
   }
   async getMostVisitedUrl(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = res.locals.user; // taking userId from route param
+      const  userId = res.locals.user; // taking userId from route param
 
       const result = await visitService.getMostVisitedUrl(userId);
 
