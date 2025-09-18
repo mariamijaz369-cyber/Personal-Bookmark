@@ -1,7 +1,7 @@
 // src/routes/visit.routes.ts
 import { Router } from "express";
 import { BookmarkVisitController } from "../controllers/visit.controller";
-
+// import { getMostFavoriteUrlsController } from "../controllers/visit.controller"; 
 const router = Router();
 const bookmarkVisitController = new BookmarkVisitController();
 
@@ -23,6 +23,9 @@ router.post("/visit/:bookmarkId", (req, res) =>
 // router.get("/", (req, res) =>
 //   bookmarkVisitController.getAllVisits(req, res)
 // );
+router.get("/most-visited/:userId", (req, res) => 
+  bookmarkVisitController.getMostVisitedUrl(req, res));
 
+// router.get("/stats/:userId", getMostFavoriteUrlsController);
 export default router;
 

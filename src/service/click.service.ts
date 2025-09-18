@@ -3,6 +3,9 @@ import { IClick } from "../models/click.model";
 import { url } from "inspector";
 
 export class ClickService {
+  static getMostClickedUrl(userId: string) {
+    throw new Error("Method not implemented.");
+  }
   private clickRepository: ClickRepository;
 
   constructor() {
@@ -28,5 +31,9 @@ export class ClickService {
    */
   async getAllClicks(): Promise<IClick[]> {
     return await this.clickRepository.getAllClicks();
+  }
+  async getMostClickedUrl(userId: string): Promise<IClick | null> {
+    console.log(userId)
+    return await this.clickRepository.getMostClickedUrl(userId);
   }
 }

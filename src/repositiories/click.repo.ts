@@ -1,5 +1,6 @@
 import Click, { IClick } from "../models/click.model";
 import mongoose from "mongoose";
+import BookmarkVisit from "../models/visit.model";
 
 export class ClickRepository {
   /**
@@ -36,5 +37,15 @@ export class ClickRepository {
     return await Click.find()
       .populate("userId", "name email")        // show which user clicked
       .populate("bookmarkId", "title url");    // show bookmark details
+  }
+  async getMostClickedUrl(userId: string): Promise<IClick | null> {
+    const userObjId = new mongoose.Types.ObjectId(userId);
+
+    const result = await Click.findOne({ userId: userObjId })
+      .sort({ clickCount: -1 })   // highest clickCount first
+      .limit(1)
+      .exec();
+
+    return result; // returns the document with highest clicks
   }
 }

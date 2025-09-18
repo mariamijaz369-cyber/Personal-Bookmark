@@ -83,4 +83,24 @@ export class ClickController {
       next(error);
     }
   }
+  async getMostClickedUrl(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = res.locals.user;
+
+      const mostClicked = await this.clickService.getMostClickedUrl(userId);
+
+      if (!mostClicked) {
+        res.status(404).json({ success: false, message: "No clicks found for this user" });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Most clicked URL fetched successfully",
+        data: mostClicked,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Server Error", error });
+    }
+  }
 }

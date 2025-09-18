@@ -1,5 +1,5 @@
-// src/models/click.model.ts
 import mongoose, { Document, Schema } from "mongoose";
+
 
 // ✅ Interface must be exported
 export interface IClick extends Document {
@@ -11,7 +11,7 @@ export interface IClick extends Document {
 }
 
 // ✅ Schema with userId added
-const ClickSchema: Schema = new Schema(
+const ClickSchema: Schema<IClick> = new Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,8 +30,25 @@ const ClickSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+// ✅ Static method to get the most clicked URL for a user
+ClickSchema.statics.getMostClickedUrl = async function(userId: string) {
+  const userObjId = new mongoose.Types.ObjectId(userId);
+
+  const result = await this.findOne({ userId: userObjId })
+    .sort({ clickCount: -1 }) // sort by clickCount descending
+    .exec();
+
+  return result; // returns the document with the highest clickCount
+};
+
 // ✅ Create the model
-const Click = mongoose.model<IClick>("Click", ClickSchema);
+interface ClickModel extends mongoose.Model<IClick> {
+  getMostClickedUrl(userId: string): Promise<IClick | null>;
+}
+
+const Click = mongoose.model<IClick, ClickModel>("Click", ClickSchema);
 
 // ✅ Export the model
 export default Click;
+
+

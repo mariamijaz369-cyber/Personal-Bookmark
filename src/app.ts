@@ -39,9 +39,16 @@ app.use(authenticate);
 // Routes
 app.use("/", routes);
 app.use("/api", bookmarkRoutes);
-
 // Global error handler
 app.use(errorHandler);
+app.use((req, res, next) => {
+  const clientIp =
+    req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+    req.socket.remoteAddress;
+
+  console.log("Client IP detected:", clientIp);
+  next();
+});
 
 // Health check
 app.get("/health", (req: Request, res: Response) => {

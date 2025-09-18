@@ -28,4 +28,32 @@ export class BookmarkVisitService {
   async getAllVisits(): Promise<IBookmarkVisit[]> {
     return await this.visitRepository.getAllVisits();
   }
+  async getMostVisitedUrl(userId: string): Promise<IBookmarkVisit | null> {
+    console.log(userId)
+    return await this.visitRepository.getMostVisitedUrl(userId);
+  }
+  async fetchMostFavoriteUrls(userId: string) {
+    try {
+      const result = await getMostFavoriteUrls(userId);
+
+      return {
+        code: 200,
+        success: true,
+        message: "Most clicked, most visited, and most favorite URLs fetched successfully",
+        data: result, // repo already gives { mostClickedUrl, mostVisitedUrl, mostFavoriteUrl }
+      };
+    } catch (error: any) {
+      console.error("Error in StatsService:", error.message);
+      return {
+        code: 500,
+        success: false,
+        message: "Internal server error while fetching favorite URLs",
+        data: null,
+      };
+    }
+  }
 }
+function getMostFavoriteUrls(userId: string) {
+  throw new Error("Function not implemented.");
+}
+
