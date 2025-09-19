@@ -1,38 +1,44 @@
 import { BookmarkVisitRepository } from "../repositiories/visit.repo";
-import { IBookmarkVisit } from "../models/visit.model";
-
+import BookmarkVisit, { IBookmarkVisit } from "../models/visit.model";
+import { NextFunction } from "express";
+import { Bookmark } from "../models/bookmark.model";
 export class BookmarkVisitService {
   private visitRepository: BookmarkVisitRepository;
 
   constructor() {
     this.visitRepository = new BookmarkVisitRepository();
   }
+ async trackVisit(userId: string, bookmarkId: string): Promise<IBookmarkVisit> {
+    const bookmark = await Bookmark.findById(bookmarkId);
+    if (!bookmark) {
+      const error = new Error("Bookmark not found");
+      (error as any).statusCode = 404; 
+      throw error;
+    }
 
-  /**
-   * 🔹 Track a visit (userId comes from token, bookmarkId from request param)
-   */
-  async trackVisit(userId: string, bookmarkId: string): Promise<IBookmarkVisit> {
-    return await this.visitRepository.trackVisit(userId, bookmarkId);
+    const visit = await this.visitRepository.trackVisit(userId, bookmarkId);
+
+    if (!visit) {
+      const error = new Error("Failed to track visit");
+      (error as any).statusCode = 500;
+      throw error;
+    }
+
+    return visit;
   }
-
-  /**
-   * 🔹 Get total visit stats for a bookmark (userId comes from token)
-   */
   async getVisitStats(userId: string, bookmarkId: string): Promise<number> {
-    return await this.visitRepository.getVisitStats(userId, bookmarkId);
+    const visit = await BookmarkVisit.findOne({ userId, bookmarkId });
+    return visit ? visit.visitCount : 0;
   }
-
-  /**
-   * 🔹 Get all visit records (for admin/analytics)
-   */
   async getAllVisits(): Promise<IBookmarkVisit[]> {
-    return await this.visitRepository.getAllVisits();
+    return await BookmarkVisit.find().populate("bookmarkId");
   }
   async getMostVisitedUrl(userId: string): Promise<IBookmarkVisit | null> {
-    console.log(userId)
-    return await this.visitRepository.getMostVisitedUrl(userId);
+    return await BookmarkVisit.findOne({ userId })
+      .sort({ visitCount: -1 })
+      .populate("bookmarkId");
   }
-  async fetchMostFavoriteUrls(userId: string) {
+async fetchMostFavoriteUrls(userId: string) {
     try {
       const result = await getMostFavoriteUrls(userId);
 
@@ -40,7 +46,7 @@ export class BookmarkVisitService {
         code: 200,
         success: true,
         message: "Most clicked, most visited, and most favorite URLs fetched successfully",
-        data: result, // repo already gives { mostClickedUrl, mostVisitedUrl, mostFavoriteUrl }
+        data: result
       };
     } catch (error: any) {
       console.error("Error in StatsService:", error.message);
@@ -56,4 +62,3 @@ export class BookmarkVisitService {
 function getMostFavoriteUrls(userId: string) {
   throw new Error("Function not implemented.");
 }
-

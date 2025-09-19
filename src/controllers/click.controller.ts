@@ -1,8 +1,15 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { ClickService } from "../service/click.service";
-
+interface FetchResult {
+  code: number;
+  success: boolean;
+  message: string;
+  data: any;
+}
 export class ClickController {
   private clickService: ClickService;
+  clickRepository: any;
+  visitRepository: any;
 
   constructor() {
     this.clickService = new ClickService();
@@ -12,36 +19,30 @@ export class ClickController {
    * 🔹 Track a click on a bookmark
    * POST /clicks/:bookmarkId
    */
-  async trackClick(req: Request, res: Response, next: NextFunction) {
+ async trackClick(req: Request, res: Response): Promise<void> {
     try {
-      const userId = res.locals.user; // ✅ userId comes from auth middleware
+      const userId =  res.locals.user; // ✅ userId from token/middleware
       const { bookmarkId } = req.params;
-      const { url } = req.body;
-    if (!bookmarkId) {
-        res.status(400).json({ success: false, message: "bookmarkId is required" });
-        return;
-      }
-      if (!userId) {
-        res.status(400).json({ success: false, message: "login is required" });
-        return;
-      }
-      const click = await this.clickService.trackClick(userId, bookmarkId, url);
 
-      return res.status(200).json({
+      const click = await this.clickService.trackClick(userId, bookmarkId);
+
+      res.status(200).json({
         success: true,
-        message: "✅ Click tracked successfully",
+        message: "Click tracked successfully",
         data: click,
       });
-    } catch (error) {
-      next(error);
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Something went wrong",
+      });
     }
   }
-
   /**
    * 🔹 Get stats for a single bookmark
    * GET /clicks/:bookmarkId
    */
-  async getClickStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+   async getClickStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = res.locals.user; // ✅ include userId
       const { bookmarkId } = req.params;
@@ -65,7 +66,6 @@ export class ClickController {
       next(error);
     }
   }
-
   /**
    * 🔹 Get stats for all bookmarks
    * GET /clicks
@@ -76,31 +76,41 @@ export class ClickController {
 
       res.status(200).json({
         success: true,
-        message: "✅ All click stats retrieved successfully",
+        message: "All click stats retrieved successfully",
         data: allClicks,
       });
     } catch (error: any) {
       next(error);
     }
   }
+
+  /**
+   * 🔹 Get the most clicked bookmark for a user
+   * GET /clicks/most
+   * Returns 404 if no bookmark exists
+   */
   async getMostClickedUrl(req: Request, res: Response): Promise<void> {
     try {
-      const userId  = res.locals.user;
-     console.log(userId)
-      const mostClicked = await this.clickService.getMostClickedUrl(userId);
+      const userId = res.locals.user;
 
-      if (!mostClicked) {
-        res.status(404).json({ success: false, message: "No clicks found for this user" });
+      if (!userId) {
+        res.status(401).json({ success: false, message: "Unauthorized: userId not found" });
         return;
       }
 
+      // ✅ Throws 404 internally if no bookmark exists
+      const mostClicked = await this.clickService.getMostClickedUrl(userId);
+
       res.status(200).json({
         success: true,
-        message: "Most clicked URL fetched successfully",
+        message: "Most clicked bookmark fetched successfully",
         data: mostClicked,
       });
-    } catch (error) {
-      res.status(500).json({ success: false, message: "Server Error", error });
+    } catch (error: any) {
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Internal server error",
+      });
     }
   }
 }

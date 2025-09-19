@@ -53,7 +53,6 @@ export class AuthController {
       next(err);
     }
   }
-
   //  Logout
   public async logoutUser(req: Request, res: Response, next: NextFunction) {
     try {

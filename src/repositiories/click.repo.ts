@@ -6,7 +6,7 @@ export class ClickRepository {
   /**
    * 🔹 Track a click for a user on a bookmark
    */
-  async trackClick(userId: string, bookmarkId: string, url: string): Promise<IClick> {
+  async trackClick(userId: string, bookmarkId: string): Promise<IClick> {
     return await Click.findOneAndUpdate(
       { 
         userId: new mongoose.Types.ObjectId(userId), 
@@ -14,7 +14,7 @@ export class ClickRepository {
       },
       {
         $inc: { clickCount: 1 },                   // Increase click count
-        $set: { lastClickedAt: new Date(), url },  // Update last clicked date + url
+        $set: { lastClickedAt: new Date() },  // Update last clicked date + url
       },
       { new: true, upsert: true } // Create new if doesn't exist
     ).exec();

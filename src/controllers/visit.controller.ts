@@ -1,29 +1,58 @@
 import { Request, Response } from "express";
 import { BookmarkVisitService } from "../service/visit.service";
-import { ParamsDictionary } from "express-serve-static-core";
+ import { BookmarkVisitRepository } from "../repositiories/visit.repo"; 
+//  import { Request, Response } from "express-serve-static-core";
 import { ParsedQs } from "qs";
+// import { Request, Response } from "express-serve-static-core";
+ const visitRepository = new BookmarkVisitRepository(); // ✅ correct instance
+interface FetchResult {
+  code: number;
+  success: boolean;
+  message: string;
+  data: any;
+}
+// export class BookmarkVisitController {
+//     getMostVisitedUrl(req: Request<{}, any, any, ParsedQs, Record<string, any>>, res: Response): unknown {
+//      throw new Error("Method not implemented.");
+//   }
+// export class BookmarkVisitController {
+//   private clickService: ClickService;
+//   clickRepository: any;
+//   visitRepository: any;
 
-const visitService = new BookmarkVisitService();
+//   private visitService: BookmarkVisitService;
+//   visitRepository: any;
 
-export class BookmarkVisitController {
-  visitService: any;
-  /**
-   * 🔹 Track a visit (userId comes from token, bookmarkId from param)
-   */
+//   constructor() {
+//     this.visitService = new BookmarkVisitService();
+//   }
+// export class BookmarkVisitController {
+//   getMostVisitedUrl(req: Request<{}, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>, number>): unknown {
+//     throw new Error("Method not implemented.");
+//   }
+//   private visitService: BookmarkVisitService;
+//   visitRepository: any; // optional placeholder like you did in ClickController
+
+//   constructor() {
+//     this.visitService = new BookmarkVisitService();
+//   }
+export class BookmarkVisitController{
+  private visitService: BookmarkVisitService;
+  visitRepository: any; // optional placeholder like you did in ClickController
+
+  constructor() {
+    this.visitService = new BookmarkVisitService();
+  }
+  
+  //  * 🔹 Track a visit (POST /visits/:bookmarkId)
+  
   async trackVisit(req: Request, res: Response): Promise<void> {
     try {
-      const userId = res.locals.user; // 👈 taken from token (auth middleware)
-      const { bookmarkId } = req.params;   // 👈 only bookmarkId is required from client
+      const userId =res.locals.user;// ✅ Extract userId from token/middleware
+      const { bookmarkId } = req.params;
 
-      if (!bookmarkId) {
-        res.status(400).json({ success: false, message: "bookmarkId is required" });
-        return;
-      }
-    if (!userId) {
-        res.status(400).json({ success: false, message: "login is required" });
-        return;
-      }
-      const visit = await visitService.trackVisit(userId, bookmarkId);
+
+      const visit = await this.visitService.trackVisit(userId, bookmarkId);
 
       res.status(200).json({
         success: true,
@@ -31,72 +60,56 @@ export class BookmarkVisitController {
         data: visit,
       });
     } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  }
-
-  /**
-   * 🔹 Get visit stats for a bookmark (userId from token, bookmarkId from param)
-   */
-  async getVisitStats(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = (req as any).user.id;
-      const { bookmarkId } = req.params;
-
-      if (!bookmarkId) {
-        res.status(400).json({ success: false, message: "bookmarkId is required" });
-        return;
-      }
-      if (!userId) {
-        res.status(400).json({ success: false, message: "login is required" });
-        return;
-      }
-      const count = await visitService.getVisitStats(userId, bookmarkId);
-
-      res.status(200).json({
-        success: true,
-        message: "Visit stats retrieved successfully",
-        visitCount: count,
+      res.status(error.statusCode || 500).json({
+        success: false,
+        message: error.message || "Something went wrong",
       });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
     }
   }
 
-  /**
-   * 🔹 Get all visit records (for admin/analytics)
-   */
-  async getAllVisits(req: Request, res: Response): Promise<void> {
-    try {
-      const visits = await visitService.getAllVisits();
+ async getMostVisitedUrl(req: Request, res: Response): Promise<void> {
+  try {
+         const userId = res.locals.user;
 
-      res.status(200).json({
-        success: true,
-        message: "All visits retrieved successfully",
-        data: visits,
-      });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+    const mostVisited = await this.visitService.getMostVisitedUrl(userId);
+
+    if (!mostVisited) {
+      res.status(404).json({ success: false, message: "No visits found" });
+      return;
     }
+
+    res.status(200).json({
+      success: true,
+      message: "Most visited bookmark fetched successfully",
+      data: mostVisited,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
   }
-  async getMostVisitedUrl(req: Request, res: Response): Promise<void> {
-    try {
-      const  userId = res.locals.user; // taking userId from route param
+}
 
-      const result = await visitService.getMostVisitedUrl(userId);
+  //  * 🔹 Fetch most favorite URLs (most clicked, most visited, most favorite)
+  //  * GET /visits/favorites
+   
+  async fetchMostFavoriteUrls(req: Request, res: Response): Promise<void> {
+  try {
+    const userId = res.locals.user;
 
-      if (!result) {
-        res.status(404).json({ success: false, message: "No visits found for this user" });
-        return;
-      }
-
-      res.json({
-        success: true,
-        message: "Most visited URL retrieved successfully",
-        data: result,
-      });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
+    if (!userId) {
+      res.status(401).json({ success: false, message: "Unauthorized: userId not found", data: null });
+      return;
     }
+
+    // ✅ cast the result to FetchResult
+    const result: FetchResult = await this.visitService.fetchMostFavoriteUrls(userId);
+
+    res.status(result.code).json(result);
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message || "Internal server error", data: null });
   }
+}
+}
+
+function next(error: any) {
+  throw new Error("Function not implemented.");
 }

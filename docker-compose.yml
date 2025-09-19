@@ -22,22 +22,6 @@
 #     volumes:
 #       - mongo_data:/data/db
 
-# volumes:
-#   mongo_data:
-# services:
-#   api:
-#     build: .
-#     ports:
-#       - "3000:3000"
-#     environment:
-#       - MONGO_URI=mongodb://mongo:27017/bookmarks
-#     depends_on:
-#       - mongo
-
-#   mongo:
-#     image: mongo:6
-#     ports:
-#       - "27017:27017"
 version: "3"
 services:
   api:

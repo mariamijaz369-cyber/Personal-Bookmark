@@ -5,29 +5,10 @@ import { isAuthenticated } from "../middlewares/auth.middleware"; // ✅ middlew
 const router = Router();
 const clickController = new ClickController();
 
-/**
- * 🔹 Track a click for a bookmark (user must be logged in)
- * POST /clicks/:bookmarkId
- */
-router.post("/click/:bookmarkId", (req, res, next) =>
-  clickController.trackClick(req, res, next)
+router.post("/click/:bookmarkId", (req, res) =>
+  clickController.trackClick(req, res)
 );
 
-// /**
-//  * 🔹 Get click stats for a specific bookmark (for logged-in user)
-//  * GET /clicks/:bookmarkId
-//  */
-// router.get("/:bookmarkId", isAuthenticated, (req, res, next) =>
-//   clickController.getClickStats(req, res, next)
-// );
-
-// /**
-//  * 🔹 Get all click records (admin/analytics)
-//  * GET /clicks
-//  */
-// router.get("/", isAuthenticated, (req, res, next) =>
-//   clickController.getAllClicks(req, res, next)
-// );
 router.get("/most-clicked", (req, res) =>
   clickController.getMostClickedUrl(req, res)
 );

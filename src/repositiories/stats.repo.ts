@@ -1,16 +1,24 @@
 import mongoose from "mongoose";
 import MostFavoriteUrl from "../models/mostFavoriteUrl.model";
+
 const Click = mongoose.model("Click");
 const BookmarkVisit = mongoose.model("BookmarkVisit");
-const Bookmark = mongoose.model("Bookmark"); // ✅ Make sure this exists
+const Bookmark = mongoose.model("Bookmark"); // ✅ ensure schema exists
 
+// --- Interfaces ---
 interface BookmarkDoc {
   _id: mongoose.Types.ObjectId;
   title: string;
   url: string;
 }
-type BookmarkInfo = { _id: string; title?: string; url?: string };
 
+type BookmarkInfo = {
+  _id: string;
+  title?: string;
+  url?: string;
+};
+
+// --- Repo function ---
 export async function getMostStatsRepo(userId: string) {
   const userObjId = new mongoose.Types.ObjectId(userId);
 
@@ -30,11 +38,11 @@ export async function getMostStatsRepo(userId: string) {
       { $sort: { totalVisits: -1 } },
     ]);
 
-  // --- 3) Top single docs ---
+  // --- 3) Pick top ---
   const topClick = clicksAgg.length ? clicksAgg[0] : null;
   const topVisit = visitsAgg.length ? visitsAgg[0] : null;
 
-  // ✅ Helper function
+  // ✅ Helper: fetch bookmark details
   const fetchBookmark = async (
     id?: mongoose.Types.ObjectId | string
   ): Promise<BookmarkInfo | null> => {
@@ -42,19 +50,19 @@ export async function getMostStatsRepo(userId: string) {
     const b = await Bookmark.findById(id)
       .select("title url")
       .lean<BookmarkDoc | null>();
-    return b
-      ? { _id: b._id.toString(), title: b.title, url: b.url }
-      : null;
+    return b ? { _id: b._id.toString(), title: b.title, url: b.url } : null;
   };
-
-  // ✅ Get populated info
+  
   const mostClickedUrl = topClick
     ? {
         ...(await fetchBookmark(topClick._id)),
         clickCount: topClick.totalClicks,
       }
     : null;
+    const result = await fetchBookmark(topClick?._id)
+    console.log(result)
 
+  // ✅ Most Visited
   const mostVisitedUrl = topVisit
     ? {
         ...(await fetchBookmark(topVisit._id)),
@@ -62,7 +70,7 @@ export async function getMostStatsRepo(userId: string) {
       }
     : null;
 
-  // --- 4) Decide mostFavoriteUrl (never null) ---
+  // --- 4) Decide Most Favorite ---
   let mostFavoriteUrl: any = null;
   if (mostClickedUrl && mostVisitedUrl) {
     mostFavoriteUrl =
@@ -81,7 +89,7 @@ export async function getMostStatsRepo(userId: string) {
     };
   }
 
-  // --- 5) Save to DB ---
+  // --- 5) Save favorite ---
   if (mostFavoriteUrl?._id) {
     await MostFavoriteUrl.findOneAndUpdate(
       { userId: userObjId, bookmarkId: mostFavoriteUrl._id },
@@ -90,7 +98,7 @@ export async function getMostStatsRepo(userId: string) {
     );
   }
 
-  // --- 6) Final Response ---
+  // --- 6) Return response ---
   return {
     code: 200,
     status: "success",
@@ -99,7 +107,7 @@ export async function getMostStatsRepo(userId: string) {
     data: {
       mostClickedUrl,
       mostVisitedUrl,
-      mostFavoriteUrl, // ✅ guaranteed not null
+      mostFavoriteUrl,
     },
   };
 }
